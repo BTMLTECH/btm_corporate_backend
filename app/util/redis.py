@@ -19,7 +19,7 @@ class RedisClient:
         db: int = configs.REDIS_DB or 0,
         password: Optional[str] = configs.REDIS_PASSWORD,
         decode_responses: bool = True,
-        username: str = configs.REDIS_USERNAME
+        # username: str = configs.REDIS_USERNAME
     ):
         """
         Initialize Redis client with connection parameters.
@@ -35,7 +35,7 @@ class RedisClient:
             host=host,
             port=port,
             db=db,
-            username=username,
+            # username=username,
             password=password,
             decode_responses=decode_responses,
         )
