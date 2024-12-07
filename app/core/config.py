@@ -37,7 +37,7 @@ class Configs(BaseSettings):
         "postgresql": "postgresql+asyncpg",
         "mysql": "mysql+mysqldb",
         "postgresqlasync": "postgresql+asyncpg"
-        # "postgresql+asyncpg": 
+        # "postgresql+asyncpg":
     }
 
     PROJECT_ROOT: str = os.path.dirname(os.path.dirname(
@@ -82,8 +82,6 @@ class Configs(BaseSettings):
     DB_ENGINE: str = DB_ENGINE_MAPPER.get(DB, "postgresql")
     DB_ASYNC_ENGINE: str = DB_ENGINE_MAPPER.get(DB_ASYNC, "postgresql+asyncpg")
 
-    print("db engine", DB_ENGINE_MAPPER.get("postgresqlasync"))
-
     DATABASE_URI_FORMAT: str = "{db_engine}://{user}:{password}@{host}:{port}/{database}"
 
     DATABASE_URI: str = "{db_engine}://{user}:{password}@{host}:{port}/{database}".format(
@@ -94,8 +92,6 @@ class Configs(BaseSettings):
         port=DB_PORT,
         database=ENV_DATABASE_MAPPER[ENV],
     )
-
-    print("uri", DATABASE_URI)
 
     # REDIS
     REDIS_URL: str = os.getenv(
