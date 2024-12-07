@@ -29,7 +29,6 @@ class Database:
     """"""
 
     def __init__(self, db_url: str) -> None:
-        print("dburl", db_url)
         self._engine: AsyncEngine = create_async_engine(
             db_url,
             pool_pre_ping=True,
