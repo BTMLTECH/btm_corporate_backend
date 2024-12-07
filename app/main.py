@@ -122,7 +122,7 @@ db = app_creator.db
 
 print("✅ Up and running...")
 
-print(db._engine.url, configs.DB_USER)
+# print(db._engine.url, configs.DB_USER)
 
 container = app_creator.container
 
