@@ -14,10 +14,10 @@ from app.core.config import configs
 class RedisClient:
     def __init__(
         self,
-        host: str = configs.REDIS_HOST or "localhost",
-        port: int = configs.REDIS_PORT or 6379,
-        db: int = configs.REDIS_DB or 0,
-        password: Optional[str] = configs.REDIS_PASSWORD,
+        host: str = "localhost",
+        port: int = 6379,
+        db: int = 0,
+        # password: Optional[str] = configs.REDIS_PASSWORD,
         decode_responses: bool = True,
         # username: str = configs.REDIS_USERNAME
     ):
@@ -36,7 +36,7 @@ class RedisClient:
             port=port,
             db=db,
             # username=username,
-            password=password,
+            # password=password,
             decode_responses=decode_responses,
         )
 
