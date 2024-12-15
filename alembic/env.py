@@ -10,6 +10,7 @@ from app.model.user import User, UserVerification
 from app.model.google import GoogleVerification
 from app.model.region import Region
 from app.model.activity import Activity
+from app.model.accommodation import Accommodation
 
 
 from alembic import context
