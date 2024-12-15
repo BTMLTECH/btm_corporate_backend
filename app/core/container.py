@@ -36,7 +36,7 @@ class Container(containers.DeclarativeContainer):
     )
 
     db = providers.Singleton(
-        Database, db_url=configs.DATABASE_LOCAL_URI)
+        Database, db_url=configs.DATABASE_URI)
 
     # Database Adapter
     database_adapter = providers.Factory(
