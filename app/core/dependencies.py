@@ -41,6 +41,15 @@ async def get_current_user(
     return current_user
 
 
+async def is_user_admin(current_user: User = Depends(get_current_user)):
+    """Checks if user is an admin"""
+    if not current_user.is_active:
+        raise AuthError("Inactive user")
+    if not current_user.is_admin:
+        raise AuthError("User is not an admin!")
+    return current_user
+
+
 def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
     if not current_user.is_active:
         raise AuthError("Inactive user")
