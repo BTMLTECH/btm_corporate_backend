@@ -100,4 +100,4 @@ class SignUpResponse(BaseModel):
     new_user: UserSchema
     
 class VerifyUser(BaseModel):
-    token: str
+    session_id: str

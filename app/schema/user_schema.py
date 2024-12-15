@@ -6,22 +6,11 @@
 
 from datetime import datetime
 from typing import Literal, Union
-from uuid import UUID
 from pydantic import UUID4, BaseModel, EmailStr
 
 
 class BaseUser(BaseModel):
-    # email: str
-
-    # first_name: Optional[str]
-    # last_name: Optional[str]
-
-    # is_active: bool
-    # is_admin: bool
-
-    # phone_no: Optional[str]
-
-    id: UUID
+    id: UUID4
 
     created_at: datetime
     updated_at: datetime
@@ -34,6 +23,15 @@ class BaseUser(BaseModel):
     class Config:
         from_attributes = True
 
+class UserModel(BaseUser):
+    name: str
+    email: EmailStr
+
+
+class UserCredentials(BaseModel):
+    email: EmailStr
+    password: str
+
 
 class UserSchema(BaseUser):
     name: str
@@ -42,4 +40,23 @@ class UserSchema(BaseUser):
     phone: Union[str, None] = None
     provider: Literal["google", "email"]
     email_verified: bool
+    address: Union[str, None] = None
+
+
+class UserVerificationSchema(BaseModel):
+    session_id: str
+    token: str
+    email: EmailStr
+
+    class Config:
+        from_attributes = True
+
+
+class CreateUser(UserCredentials):
+    name: str
+
+class UpdateUser(BaseModel):
+    name: Union[str, None] = None
+    password: Union[str, None] = None
+    phone: Union[str, None] = None
     address: Union[str, None] = None

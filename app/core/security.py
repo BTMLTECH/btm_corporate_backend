@@ -46,10 +46,12 @@ def create_access_token(subject: dict, expires_delta:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify password"""
     return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
+    """Hash a password"""
     return pwd_context.hash(password)
 
 
@@ -83,7 +85,7 @@ class JWTBearer(HTTPBearer):
                 raise AuthError(detail="Invalid authentication scheme.")
 
             if not self.verify_jwt(credentials.credentials):
-                raise AuthError(detail="Invalid token or expired token.")
+                raise AuthError(detail="Invalid or expired token.")
 
             return credentials.credentials
         else:
@@ -99,4 +101,5 @@ class JWTBearer(HTTPBearer):
 
         if payload:
             is_token_valid = True
+            
         return is_token_valid

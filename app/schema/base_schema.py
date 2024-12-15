@@ -11,12 +11,13 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ModelBaseInfo(BaseModel):
-    model_config = ConfigDict(
-        arbitrary_types_allowed=True, from_attributes=True)
+    # model_config = ConfigDict(
+    #     arbitrary_types_allowed=True, from_attributes=True)
     
     id: UUID
     created_at: datetime
     updated_at: datetime
+    deleted_at: Union[datetime, None] = None
 
     class Config:
         model_config = ConfigDict(

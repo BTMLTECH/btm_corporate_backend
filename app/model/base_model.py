@@ -5,6 +5,7 @@
 
 
 from datetime import datetime
+from typing import Optional
 from uuid import UUID, uuid4
 
 from pydantic import ConfigDict
@@ -22,23 +23,6 @@ from app.core.database import Base
 class BaseModel(Base, SQLModel):
     __abstract__ = True
 
-    # id: UUID = Field(mapped_column(primary_key=True, default=uuid4()))
-
-    # created_at: Mapped[datetime] = Field(mapped_column(
-    #     DateTime(timezone=True), server_default=func.now(), default=datetime.now()))
-
-    # # created_at: Mapped[datetime] = mapped_column(
-    # #     DateTime(timezone=True), server_default=func.now(), default=datetime.now())
-
-    # updated_at: Mapped[datetime] = Field(mapped_column(
-    #     DateTime(timezone=True), onupdate=datetime.now(), server_default=func.now(), default=datetime.now()))
-
-    # deleted_at: Mapped[datetime] = Field(mapped_column(
-    #     DateTime(timezone=True), server_default=func.now(), default=None))
-
-    # # updated_at: datetime = Field(sa_column=Column(
-    # #     DateTime, onupdate=datetime.now()), default=datetime.now())
-
     id: UUID = Field(
         default_factory=uuid4,
         primary_key=True,
@@ -46,28 +30,32 @@ class BaseModel(Base, SQLModel):
     )
 
     created_at: datetime = Field(
-        sa_column=Column(
-            DateTime(timezone=True),
-            server_default=func.now(),
-            nullable=False
-        ),
-        default_factory=datetime.now
+        default_factory=datetime.now,
+        nullable=False,
+        sa_column_kwargs={
+            'server_default': func.now()
+        }
     )
 
     updated_at: datetime = Field(
-        sa_column=Column(
-            DateTime(timezone=True),
-            server_default=func.now(),
-            onupdate=func.now(),
-            nullable=False
-        ),
-        default_factory=datetime.now
+        default_factory=datetime.now,
+        nullable=False,
+        sa_column_kwargs={
+            'server_default': func.now(),
+            'onupdate': func.now()
+        }
     )
 
-    deleted_at: datetime = Field(
-        sa_column=Column(
-            DateTime(timezone=True),
-            nullable=True
-        ),
-        default=None
+    deleted_at: Optional[datetime] = Field(
+        default=None,
+        nullable=True
     )
+
+    # user_deleted_at: datetime = Field(
+    #     sa_column=Column(
+    #         "deleted_at",
+    #         DateTime(timezone=True),
+    #         nullable=True,
+    #         default=None
+    #     )
+    # )

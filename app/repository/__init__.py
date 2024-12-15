@@ -1,1 +1,4 @@
 from app.repository.user_repository import UserRepository
+from app.repository.auth_repository import AuthRepository
+from app.repository.user_verification_repository import UserVerificationRepository
+from app.repository.google_repository import GoogleRepository

@@ -70,7 +70,8 @@ class Configs(BaseSettings):
     SMTP_SERVER: Union[str, None] = os.getenv("SMTP_SERVER")
     EMAIL_USERNAME: Union[str, None] = os.getenv("EMAIL_USERNAME")
     EMAIL_PASSWORD: Union[str, None] = os.getenv("EMAIL_PASSWORD")
-    SENDER_EMAIL: Union[str, None] = os.getenv("SENDER_EMAIL")
+    SENDER_EMAIL: Union[str, None] = os.getenv(
+        "SENDER_EMAIL", "info@btmghana.net")
 
     # database
     DB: str = os.getenv("DB", "postgresql")
@@ -91,6 +92,15 @@ class Configs(BaseSettings):
         host=DB_HOST,
         port=DB_PORT,
         database=ENV_DATABASE_MAPPER[ENV],
+    )
+
+    DATABASE_LOCAL_URI: str = "{db_engine}://{user}:{password}@{host}:{port}/{database}".format(
+        db_engine=DB_ASYNC_ENGINE,
+        user=os.getenv("DB_LOCAL_USER"),
+        password=os.getenv("DB_LOCAL_PASSWORD"),
+        host=os.getenv("DB_LOCAL_HOST"),
+        port=os.getenv("DB_LOCAL_PORT"),
+        database=os.getenv("DB_LOCAL"),
     )
 
     # REDIS

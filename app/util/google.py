@@ -55,9 +55,9 @@ class GoogleAuth:
         """"""
         try:
             self.flow.fetch_token(code=code)
-
             return self.flow
-        except (oauthlib.oauth2.rfc6749.errors.InvalidGrantError, ) as e:
+        except (oauthlib.oauth2.rfc6749.errors.InvalidGrantError, oauthlib.oauth2.rfc6749.errors.CustomOAuth2Error) as e:
+            print("error has", e)
             return None
 
     def verify_google_token(self, id_token: Any) -> Optional[Mapping[str, Any]]:
@@ -75,5 +75,8 @@ class GoogleAuth:
             return None
 
 
-google_auth = GoogleAuth(client_secrets_file=configs.GOOGLE_CLIENT,
+google_login_auth = GoogleAuth(client_secrets_file=configs.GOOGLE_CLIENT,
                          redirect_uri=configs.GOOGLE_LOGIN_REDIRECT_URI, scopes=configs.GOOGLE_SCOPES)
+
+google_register_auth = GoogleAuth(client_secrets_file=configs.GOOGLE_CLIENT,
+                                          redirect_uri=configs.GOOGLE_REGISTER_REDIRECT_URI, scopes=configs.GOOGLE_SCOPES)

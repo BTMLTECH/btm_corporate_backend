@@ -6,7 +6,10 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config, create_async_engine, AsyncEngine
 from app.core.database import Base
 from os import getenv
-from app.model.user import User
+from app.model.user import User, UserVerification
+from app.model.google import GoogleVerification
+from app.model.region import Region
+from app.model.activity import Activity
 
 
 from alembic import context
@@ -17,7 +20,7 @@ database_url: str = "{db_engine}://{user}:{password}@{host}:{port}/{database}".f
     password=getenv("DB_LOCAL_PASSWORD"),
     host=getenv("DB_LOCAL_HOST", "localhost"),
     port=5432,
-    database=getenv("DB_LOCAL"),
+    database=getenv("DB_LOCAL_", "btm_corp_ws_dev"),
 )
 
 # this is the Alembic Config object, which provides
@@ -75,7 +78,8 @@ def process_revision_directives(context, revision, directives):
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata, process_revision_directives=process_revision_directives)
+    context.configure(connection=connection, target_metadata=target_metadata,
+                      process_revision_directives=process_revision_directives)
 
     with context.begin_transaction():
         context.run_migrations()

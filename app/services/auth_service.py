@@ -4,31 +4,40 @@
 """Auth Service"""
 
 
-from datetime import timedelta
-from typing import Union
+from datetime import timedelta, timezone
+from typing import Any, Mapping, Optional, Union
 from uuid import uuid4
 
 from pydantic import EmailStr
 from app.core.config import configs
-from app.core.database import Database
-from app.core.exceptions import AuthError, ValidationError
-from app.core.security import create_access_token, get_password_hash, \
+from app.core.exceptions import AuthError, GeneralError, ValidationError
+from app.core.security import JWTBearer, create_access_token, get_password_hash, \
     verify_password
-from app.model.user import User
+from app.model.google import GoogleVerification
+from app.model.user import User, UserVerification
+from app.repository.auth_repository import AuthRepository
+from app.repository.google_repository import GoogleRepository
 from app.repository.user_repository import UserRepository
+from app.repository.user_verification_repository import UserVerificationRepository
 from app.schema.auth_schema import CreateUser, GoogleSignIn, Payload, SignIn, UserLogin
-from app.schema.user_schema import UserSchema
-from app.services.base_service import BaseService
+from app.schema.google_schema import GoogleSchema
+from app.schema.user_schema import UserSchema, UserVerificationSchema
 from smtplib import SMTP
 from email.mime.text import MIMEText
 
+from app.services.base_service import BaseService
+from app.services.mail_service import EmailService
+from app.util.google import google_login_auth, google_register_auth
+
 
 class AuthService(BaseService):
-    def __init__(self, user_repository: UserRepository, db: Database):
+    def __init__(self, auth_repository: AuthRepository, user_verification_repository: UserVerificationRepository, user_repository: UserRepository, google_repository: GoogleRepository):
+        self.auth_repository = auth_repository
+        self.user_verification_repository = user_verification_repository
         self.user_repository = user_repository
-        self.db = db
+        self.google_repository = google_repository
 
-        super().__init__(user_repository)
+        super().__init__(auth_repository)
 
     async def sign_in(self, sign_in_info: UserLogin):
         user = await self.user_repository.get_by_email(sign_in_info.email)
@@ -72,6 +81,9 @@ class AuthService(BaseService):
     async def google_sign_in(self, sign_in_info: UserLogin):
         user = await self.user_repository.get_by_email(sign_in_info.email)
 
+        if user and user.provider != 'google':
+            return AuthError(detail="You signed up using a different method")
+
         payload = Payload(
             id=str(user.id),
             email=user.email,
@@ -109,21 +121,16 @@ class AuthService(BaseService):
 
         user.password = get_password_hash(user_info.password)
 
-        created_user: User
+        new_user: User
 
-        async with self.db.session() as session:
-            created_user = await self.user_repository.create(user)
-
-            # Commit transaction here
-            await session.commit()
-
-            delattr(created_user, "password")
+        try:
+            new_user = await self.auth_repository.create(user)
 
             payload = Payload(
-                id=str(created_user.id),
-                email=created_user.email,
-                name=created_user.name,
-                is_admin=created_user.is_admin,
+                id=str(new_user.id),
+                email=new_user.email,
+                name=new_user.name,
+                is_admin=new_user.is_admin,
             )
 
             token_lifespan = timedelta(
@@ -132,22 +139,26 @@ class AuthService(BaseService):
             access_token, _ = create_access_token(
                 payload.model_dump(), token_lifespan)
 
-            email_verification: bool = False
-            # send email to user
-            try:
-                await self.user_repository.send_sign_up_verification_email(created_user.email, access_token)
-            except Exception as e:
-                print("error", e)
-                raise e
-            finally:
-                return UserSchema(**created_user.model_dump(exclude_none=True))
+            email_service = EmailService(configs.SMTP_SERVER, configs.EMAIL_PORT,
+                                         configs.EMAIL_USERNAME, configs.EMAIL_PASSWORD, configs.SENDER_EMAIL)
 
-        delattr(created_user, "password")
+            session_id = uuid4()
 
-        return UserSchema(**created_user.model_dump(exclude_none=True))
+            send_email = await email_service.send_verification_email(session_id, new_user.email, "http://127.0.0.1/verify")
+
+            user_verification = UserVerification(
+                session_id=session_id, email=send_email.get("email"), token=access_token)
+
+            await self.user_verification_repository.create(user_verification)
+        except Exception as e:
+            raise e
+
+        delattr(new_user, "password")
+        return UserSchema(**new_user.model_dump(exclude_none=True))
 
     async def google_sign_up(self, user_info: GoogleSignIn):
         """Google Login"""
+
         user_exists: User = await self.user_repository.get_by_email(user_info.email)
 
         if not user_exists or user_exists is None:
@@ -155,13 +166,13 @@ class AuthService(BaseService):
             user = User(**user_info.model_dump(exclude_none=True), is_active=True,
                         is_admin=False, provider="google")
 
-            created_user = await self.user_repository.create(user)
+            new_user = await self.user_repository.create(user)
 
             payload = Payload(
-                id=str(created_user.id),
-                email=created_user.email,
-                name=created_user.name,
-                is_admin=created_user.is_admin,
+                id=str(new_user.id),
+                email=new_user.email,
+                name=new_user.name,
+                is_admin=new_user.is_admin,
             )
 
             token_lifespan = timedelta(
@@ -173,12 +184,101 @@ class AuthService(BaseService):
             google_signup_result = {
                 "access_token": access_token,
                 "expiration": expiration_datetime,
-                "user": created_user,
+                "user": new_user,
             }
 
             return google_signup_result
 
         return self.sign_in(sign_in_info=SignIn(email=user_info.email))
+
+    async def google_sign_up_temp(self, code: str, state: str):
+        """"""
+        if not code:
+            return GeneralError(detail="Authorization code is missings")
+
+        stored_state = await self.get_google_state(state)
+
+        received_state = state
+
+        if not stored_state or not received_state or stored_state.state != received_state:
+            return AuthError(detail="Authentication failed. Please try again")
+
+        flow = google_register_auth.google_auth_flow(code)
+
+        if flow is None:
+            return AuthError(detail="Authorization failed. Please try again!")
+
+        credentials = flow.credentials
+
+        # request.session['credentials'] = {
+        #     'token': credentials.token,
+        #     'refresh_token': credentials.refresh_token,
+        #     'token_uri': credentials.token_uri,
+        #     'client_id': credentials.client_id,
+        #     'client_secret': credentials.client_secret,
+        #     'scopes': credentials.scopes,
+        # }
+
+        try:
+            user_info: Optional[Mapping[str, Any]] = google_register_auth.verify_google_token(
+                id_token=credentials._id_token)
+
+            # check if user already exists
+            existing_user = await self.user_repository.get_by_email(user_info.get('email'))
+
+            if stored_state.auth_type == 'Register' and existing_user:
+                await self.google_repository.delete_by_state(state)
+                return AuthError(detail="Account exists! Please login.")
+
+            await self.google_repository.delete_by_state(state)
+            return await self.google_sign_up(GoogleSignIn(**user_info))
+        except Exception as e:
+            return GeneralError(detail=str(e))
+
+    async def google_sign_in_temp(self, code: str, state: str):
+        """"""
+        if not code:
+            return GeneralError(detail="Authorization code is missing")
+
+        # Verify state
+        stored_state = await self.get_google_state(state)
+
+        received_state = state
+
+        if not stored_state or not received_state or stored_state.state != received_state:
+            return AuthError(detail="Authentication failed. Please try again")
+
+        flow = google_login_auth.google_auth_flow(code)
+
+        if flow is None:
+            return GeneralError(detail="Authorization failed. Please try again!")
+
+        credentials = flow.credentials
+
+        # request.session['credentials'] = {
+        #     'token': credentials.token,
+        #     'refresh_token': credentials.refresh_token,
+        #     'token_uri': credentials.token_uri,
+        #     'client_id': credentials.client_id,
+        #     'client_secret': credentials.client_secret,
+        #     'scopes': credentials.scopes,
+        # }
+
+        try:
+            user_info: Optional[Mapping[str, Any]] = google_login_auth.verify_google_token(
+                id_token=credentials._id_token)
+
+            # check if user already exists
+            existing_user = await self.user_repository.get_by_email(user_info.get('email'))
+
+            if existing_user is not None:
+                await self.google_repository.delete_by_state(state)
+                return await self.google_sign_in(sign_in_info=SignIn(email=existing_user.email))
+
+            await self.google_repository.delete_by_state(state)
+            return AuthError(detail="Account does not exist! Please sign up")
+        except Exception as e:
+            return GeneralError(detail=str(e))
 
     async def reset_user_password(self, email: str):
         """Reset a user's password"""
@@ -218,7 +318,7 @@ class AuthService(BaseService):
         # Create MIMEText object
         message = MIMEText(text, "plain")
         message["Subject"] = "BTM Ghana - Email Verification"
-        message["From"] = configs.SENDER_EMAIL
+        message["From"] = "{0} {1}".format("BTMGhana", configs.SENDER_EMAIL)
         message["To"] = "oluwatobilobagunloye@gmail.com"
 
         # set token in redis here
@@ -233,8 +333,9 @@ class AuthService(BaseService):
                 server.sendmail(configs.SENDER_EMAIL, "oluwatobilobagunloye@gmail.com",
                                 message.as_string())
 
-            redis_client.set(token_id, verification_data,
-                             expiry_seconds=60*expiration_time)
+            # redis_client.set(token_id, verification_data,
+            #                  expiry_seconds=60*expiration_time)
+
             return True
         except Exception as e:
             raise e
@@ -244,27 +345,61 @@ class AuthService(BaseService):
     async def reset_password(self, email: EmailStr):
         """"""
 
-    async def verify_user_sign_up(self, token: str) -> bool:
+    async def verify_user_sign_up(self, session_id: str) -> bool:
         """Verify a user's account after sign up"""
-        from app.util.redis import redis_client
+        session_id_exists = await self.user_verification_repository.verify_sign_up(session_id)
 
-        verification_data = redis_client.get(token)
+        if session_id_exists is not None:
+            from datetime import datetime
 
-        if verification_data is None:
-            return False
+            jwt = JWTBearer()
 
-        user = await self.user_repository.get_by_email(verification_data['email'])
+            verified = jwt.verify_jwt(session_id_exists.token)
 
-        if user is None:
-            return False
+            if not verified:
+                delete_verification = await self.user_verification_repository.delete(session_id_exists.session_id)
+                if delete_verification or not delete_verification:
+                    return False
+                return False
 
-        user.email_verified = True
+            current_time_utc = datetime.now(timezone.utc)
 
-        update_user = await self.user_repository.update(user, updated_fields={"email_verified": True})
+            if current_time_utc > session_id_exists.expires_at:
+                await self.user_verification_repository.delete(session_id_exists.session_id)
+                return False
 
-        if update_user is None:
-            return False
-        
-        redis_client.delete(token)
+            else:
+                user = await self.user_repository.get_by_email(session_id_exists.email)
 
-        return True
+                if user is None:
+                    return False
+
+                user_updated = await self.user_repository.update(user, {
+                    "email_verified": True
+                })
+
+                if user_updated is None:
+                    return False
+
+                delete_verification = await self.user_verification_repository.delete(session_id_exists.session_id)
+
+                if delete_verification or not delete_verification:
+                    return True
+
+                return True
+
+        return False
+
+    async def store_google_state(self, state: str, auth_type: str = "Login") -> GoogleVerification:
+        """Store google state"""
+        google_state = GoogleVerification(state=state, auth_type=auth_type)
+
+        stored_state = await self.google_repository.create(google_state)
+
+        return stored_state
+
+    async def get_google_state(self, state: str):
+        """Get google state"""
+        google_state = await self.google_repository.get_by_state(state)
+
+        return google_state
