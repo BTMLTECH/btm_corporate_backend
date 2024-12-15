@@ -30,7 +30,7 @@ async def add_region(region: CreateRegion, service: RegionService = Depends(Prov
 
     return region
 
-@router.delete("{region_id}")
+@router.delete("/{region_id}")
 @inject
 async def delete_region(region_id: str, service: RegionService = Depends(Provide[Container.region_service]), current_user: User = Depends(is_user_admin)):
     """Route to delete a region by id"""

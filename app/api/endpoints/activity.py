@@ -31,7 +31,7 @@ async def add_activity(activity: CreateActivity, service: ActivityService = Depe
     return activity
 
 
-@router.delete("{activity_id}")
+@router.delete("/{activity_id}")
 @inject
 async def delete_activity(activity_id: str, service: ActivityService = Depends(Provide[Container.activity_service]), current_user: User = Depends(is_user_admin)):
     """Route to delete an activity by ID"""
