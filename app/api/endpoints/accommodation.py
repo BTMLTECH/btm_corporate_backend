@@ -31,7 +31,7 @@ async def add_accommodation(accommodation: CreateAccommodation, service: Accommo
     return accommodation
 
 
-@router.delete("{accommodation_id}")
+@router.delete("/{accommodation_id}")
 @inject
 async def delete_accommodation(accommodation_id: str, service: AccommodationService = Depends(Provide[Container.accommodation_service]), current_user: User = Depends(is_user_admin)):
     """Route to delete an accommodation by ID"""

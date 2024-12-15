@@ -6,11 +6,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config, create_async_engine, AsyncEngine
 from app.core.database import Base
 from os import getenv
-from app.model.user import User, UserVerification
-from app.model.google import GoogleVerification
-from app.model.region import Region
-from app.model.activity import Activity
-from app.model.accommodation import Accommodation
+from app.model import *
 
 
 from alembic import context
