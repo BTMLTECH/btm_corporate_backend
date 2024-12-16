@@ -34,12 +34,13 @@ class Container(containers.DeclarativeContainer):
             "app.api.endpoints.user",
             "app.api.endpoints.region",
             "app.api.endpoints.transportation",
+            "app.api.endpoints.tourist_sites_region"
             "app.core.dependencies",
         ]
     )
 
     db = providers.Singleton(
-        Database, db_url=configs.DATABASE_URI)
+        Database, db_url=configs.DATABASE_LOCAL_URI)
 
     # Database Adapter
     database_adapter = providers.Factory(

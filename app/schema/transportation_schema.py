@@ -10,5 +10,4 @@ from app.schema.base_schema import ModelBaseInfo
 
 class CreateTransportation(BaseModel):
     name: str
-    type: Union[str, None] = None
     price: float = 0

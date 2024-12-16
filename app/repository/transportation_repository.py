@@ -37,7 +37,7 @@ class TransportationRepository(BaseRepository):
             except IntegrityError as e:
                 await self.db_adapter.rollback(session)
                 raise DuplicatedError(detail=str(e.orig))
-            except (Exception, ...) as e:
+            except Exception as e:
                 if "duplicate" in str(e).lower():
                     error_msg = "Transportation exists!"
                     raise DuplicatedError(detail=error_msg)

@@ -2,9 +2,10 @@
 # File: region.py
 # Author: Oluwatobiloba Light
 """Region Model"""
+from typing import List
 from sqlalchemy import Column, String
 from app.model.base_model import BaseModel
-from sqlmodel import Field
+from sqlmodel import Field, Relationship
 
 
 class Region(BaseModel, table=True):
@@ -12,3 +13,6 @@ class Region(BaseModel, table=True):
 
     name: str = Field(sa_column=Column("name",
                                        String(255), default=None, nullable=False, unique=True))
+
+    # One-to-Many relationship with SitesInRegion
+    sites: List["TouristSitesRegion"] = Relationship(back_populates="region")

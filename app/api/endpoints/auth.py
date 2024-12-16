@@ -4,23 +4,17 @@
 """Auth endpoint"""
 
 
-from typing import Any, Mapping, Optional
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends, Request, responses, status
-from fastapi.encoders import jsonable_encoder
+from fastapi import APIRouter, Depends, Request, responses
 from app.core.dependencies import get_current_user
-from app.core.exceptions import AuthError, GeneralError
-from app.model.google import GoogleVerification
+from app.core.exceptions import AuthError
 from app.model.user import User
-from app.schema.google_schema import GoogleSchema
 from app.schema.user_schema import UserSchema
 from app.services.user_service import UserService
-from app.util.redis import redis_client
 from app.core.container import Container
-from app.schema.auth_schema import CreateUser, GoogleCallbackData, GoogleSignIn, SignIn, UserLogin, VerifyUser
+from app.schema.auth_schema import CreateUser, GoogleCallbackData, UserLogin, VerifyUser
 from app.services.auth_service import AuthService
-from app.util.google import GoogleAuth, google_login_auth, google_register_auth
-from app.core.config import configs
+from app.util.google import google_login_auth, google_register_auth
 
 
 router = APIRouter(
