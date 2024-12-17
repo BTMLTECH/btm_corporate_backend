@@ -9,3 +9,7 @@ from app.schema.base_schema import ModelBaseInfo
 
 class CreateRegion(BaseModel):
     name: str
+
+
+class RegionSchema(ModelBaseInfo):
+    name: str

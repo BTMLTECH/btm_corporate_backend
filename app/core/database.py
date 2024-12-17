@@ -63,7 +63,11 @@ class Database:
     async def create_async_database(self) -> None:
         if self._engine:
             async with self._engine.connect() as conn:
-                await conn.run_sync(Base.metadata.drop_all)
+                if configs.ENV == "development" or configs.ENV == 'dev':
+                    # Drop dependent tables explicitly
+                    await conn.run_sync(Base.metadata.drop_all, checkfirst=True)
+
+                # await conn.run_sync(Base.metadata.drop_all)
                 await conn.run_sync(Base.metadata.create_all)
 
     @asynccontextmanager

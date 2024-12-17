@@ -3,17 +3,15 @@
 # Author: Oluwatobiloba Light
 """Region Repository"""
 
-from typing import TypeVar, Union
+from typing import Sequence, TypeVar
 from uuid import UUID
-
 from sqlalchemy import delete, select
-
 from app.adapter.sqlalchemy_adapter import SQLAlchemyAdapter
 from app.model.region import Region
 from app.repository.base_repository import BaseRepository
 from app.schema.region_schema import CreateRegion
 from psycopg2 import IntegrityError
-from app.core.exceptions import DuplicatedError
+from app.core.exceptions import DuplicatedError, GeneralError
 
 
 T = TypeVar("T", bound=Region)
@@ -63,8 +61,20 @@ class RegionRepository(BaseRepository):
                 if result.rowcount < 1:
                     region_deleted = False
                 else:
-                     region_deleted = True
+                    region_deleted = True
             except Exception as e:
                 return False
 
         return region_deleted
+
+    async def find_all(self) -> Sequence[Region]:
+        """Returns a list of all regions"""
+        async with self.db_adapter.session() as session, session.begin():
+            query = select(self.model)
+
+            try:
+                result = (await session.execute(query)).scalars().all()
+
+                return result
+            except Exception as e:
+                raise GeneralError(detail=str(e))

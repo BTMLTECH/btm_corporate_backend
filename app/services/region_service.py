@@ -24,3 +24,7 @@ class RegionService(BaseService):
     async def delete_by_id(self, region_id: str):
         """Delete a region by id"""
         return await self.region_repository.delete_by_id(UUID(region_id))
+    
+    async def find_all_regions(self):
+        """Get all regions"""
+        return await self.region_repository.find_all()

@@ -15,4 +15,4 @@ class Region(BaseModel, table=True):
                                        String(255), default=None, nullable=False, unique=True))
 
     # One-to-Many relationship with SitesInRegion
-    sites: List["TouristSitesRegion"] = Relationship(back_populates="region")
+    sites: List["TourSitesRegion"] = Relationship(back_populates="region")

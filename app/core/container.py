@@ -13,6 +13,7 @@ from app.repository.activity_repository import ActivityRepository
 from app.repository.auth_repository import AuthRepository
 from app.repository.google_repository import GoogleRepository
 from app.repository.region_repository import RegionRepository
+from app.repository.tour_sites_region_repository import TourSitesRegionRepository
 from app.repository.transportation_repository import TransportationRepository
 from app.repository.user_repository import UserRepository
 from app.repository.user_verification_repository import UserVerificationRepository
@@ -20,6 +21,7 @@ from app.services.accommodation_service import AccommodationService
 from app.services.activity_service import ActivityService
 from app.services.auth_service import AuthService
 from app.services.region_service import RegionService
+from app.services.tour_sites_service import TourSitesRegionService
 from app.services.transportation_service import TransportationService
 from app.services.user_service import UserService
 from app.services import *
@@ -34,7 +36,6 @@ class Container(containers.DeclarativeContainer):
             "app.api.endpoints.user",
             "app.api.endpoints.region",
             "app.api.endpoints.transportation",
-            "app.api.endpoints.tourist_sites_region"
             "app.core.dependencies",
         ]
     )
@@ -74,6 +75,9 @@ class Container(containers.DeclarativeContainer):
     
     transportation_repository = providers.Factory(
         TransportationRepository, db_adapter=database_adapter)
+    
+    tour_sites_region_repository = providers.Factory(
+        TourSitesRegionRepository, db_adapter=database_adapter)
 
     # Services
     auth_service = providers.Factory(
@@ -100,3 +104,6 @@ class Container(containers.DeclarativeContainer):
     
     transportation_service = providers.Factory(
         TransportationService, transportation_repository)
+    
+    tour_sites_region_service = providers.Factory(
+        TourSitesRegionService, tour_sites_region_repository)

@@ -23,6 +23,7 @@ class ModelBaseInfo(BaseModel):
         model_config = ConfigDict(
             arbitrary_types_allowed=True, from_attributes=True)
         from_attributes = True
+        orm_mode = True
 
 
 class FindBase(BaseModel):
