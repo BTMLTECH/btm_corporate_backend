@@ -6,6 +6,7 @@
 
 from datetime import datetime
 from typing import Literal, Union
+from uuid import UUID
 from pydantic import UUID4, BaseModel, EmailStr
 
 
@@ -34,6 +35,7 @@ class UserCredentials(BaseModel):
 
 
 class UserSchema(BaseUser):
+    id: UUID
     name: str
     email: EmailStr
     password: Union[str, None] = None

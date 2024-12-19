@@ -6,7 +6,6 @@
 from typing import Sequence, TypeVar, Union
 from uuid import UUID
 from sqlalchemy import delete, select, update
-import sqlalchemy
 from app.adapter.sqlalchemy_adapter import SQLAlchemyAdapter
 from app.model.region import Region
 from app.model.tour_sites_region import TourSitesRegion
@@ -15,7 +14,7 @@ from app.schema.tour_sites_region_schema import CreateTourSitesRegion
 from psycopg2 import IntegrityError
 from app.core.exceptions import DuplicatedError, GeneralError, NotFoundError
 from sqlalchemy.orm import joinedload
-from sqlalchemy.exc import SQLAlchemyError, CompileError, StatementError, DBAPIError
+from sqlalchemy.exc import SQLAlchemyError, CompileError, DBAPIError
 
 
 T = TypeVar("T", bound=TourSitesRegion)
@@ -61,16 +60,17 @@ class TourSitesRegionRepository(BaseRepository):
             query.region = region
             return query
 
-    async def update_by_id(self, tour_site_id: UUID, updated_fields: dict[str, any]):
+    async def update_by_id(self, tour_site_id: UUID, updated_fields: dict[str, any]) -> Union[TourSitesRegion, None]:
         """Update a tour site by ID"""
         async with self.db_adapter.session() as session, session.begin():
-            query = (update(self.model).where(self.model.id ==
-                                              tour_site_id).values(**updated_fields).execution_options(synchronize_session="fetch"))
-
             try:
+                query = (update(self.model).where(self.model.id ==
+                                                  tour_site_id).values(**updated_fields).execution_options(synchronize_session="fetch"))
+
                 result = (await session.execute(query))
 
-                q = select(self.model).where(self.model.id == tour_site_id).options(joinedload(self.model.region))
+                q = select(self.model).where(self.model.id == tour_site_id).options(
+                    joinedload(self.model.region))
 
                 updated_record = (await session.execute(q)).scalar_one_or_none()
 
@@ -78,17 +78,9 @@ class TourSitesRegionRepository(BaseRepository):
                     return updated_record
 
                 return updated_record
-            except (Exception, CompileError, DBAPIError) as e:
-                if "column names" in str(e).lower():
-                    raise GeneralError(detail="You cannot update an invalid field")
-                
-                if "invalid input" in str(e).lower():
-                    raise GeneralError(detail="Invalid field type")
-                
-                await self.db_adapter.rollback(session)
-                raise e
             except:
-                raise GeneralError(detail="An unknown error has occured")
+                await self.db_adapter.rollback(session)
+                raise
 
     async def delete_by_id(self, region_id: UUID) -> bool:
         """Delete a tour_sites_region by ID"""
@@ -120,14 +112,28 @@ class TourSitesRegionRepository(BaseRepository):
             except Exception as e:
                 raise GeneralError(detail=str(e))
 
+    async def find_by_id(self, tour_site_id: UUID) -> Union[TourSitesRegion, None]:
+        """Find a tour site by ID"""
+        async with self.db_adapter.session() as session, session.begin():
+            try:
+                query = select(self.model).where(self.model.id == tour_site_id).options(
+                    joinedload(self.model.region))
+
+                result = await session.get(self.model, tour_site_id, options=[joinedload(self.model.region)])
+
+                return result
+            except:
+                raise
+
     async def find_all_tour_sites_by_region_id(self, region_id: UUID):
         """Find all tour sites by region id"""
         async with self.db_adapter.session() as session, session.begin():
-            query = select(self.model).where(self.model.region_id == region_id).options(joinedload(self.model.region))
+            query = select(self.model).where(self.model.region_id == region_id).options(
+                joinedload(self.model.region))
 
             try:
                 query = (await session.execute(query)).scalars().all()
-            except (Exception, SQLAlchemyError) as e:
-                raise GeneralError(detail=str(e))
+            except:
+                raise
 
             return query

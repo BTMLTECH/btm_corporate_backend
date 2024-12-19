@@ -4,7 +4,7 @@
 """Region endpoint"""
 
 
-from typing import Sequence
+from typing import Sequence, Union
 from uuid import UUID
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
@@ -14,7 +14,7 @@ from app.core.exceptions import GeneralError
 from app.model.region import Region
 from app.model.tour_sites_region import TourSitesRegion
 from app.model.user import User
-from app.schema.region_schema import CreateRegion, RegionSchema
+from app.schema.region_schema import CreateRegion, RegionSchema, UpdateRegion
 from app.schema.tour_sites_region_schema import CreateTourSitesRegion, TourSitesRegionSchema, UpdateTourSitesRegion
 from app.services.region_service import RegionService
 from app.core.container import Container
@@ -60,6 +60,20 @@ async def get_all_regions(service: RegionService = Depends(Provide[Container.reg
     return regions
 
 
+@router.get("/{region_id}", response_model=RegionSchema, description="Get a region by ID")
+@inject
+async def get_region_by_id(region_id: str, service: RegionService = Depends(Provide[Container.region_service])):
+    """Route to get a region by ID"""
+    return await service.find_by_id(region_id)
+
+
+@router.patch("/{region_id}", response_model=Union[RegionSchema, None])
+@inject
+async def update_region_by_id(region_id: str, updated_region: UpdateRegion, service: RegionService = Depends(Provide[Container.region_service])):
+    """Route to update a region by ID"""
+    return await service.update_by_id(region_id, updated_region)
+
+
 @router.get("/tour-sites", response_model=Sequence[TourSitesRegionSchema],
             description="Get a list of all Tourist sites in all Regions",
             )
@@ -80,7 +94,7 @@ async def create_region_tour_site(tour_site: CreateTourSitesRegion, service: Tou
     return tour_site
 
 
-@router.post("/{region_id}/tour-sites", response_model=Sequence[TourSitesRegionSchema], description="Get all tour sites in a region")
+@router.get("/{region_id}/tour-sites", response_model=Sequence[TourSitesRegionSchema], description="Get all tour sites in a region")
 @inject
 async def get_region_tour_sites(region_id: str, service: TourSitesRegionService = Depends(Provide[Container.tour_sites_region_service])):
     """Route to get all tour sites of a region"""
@@ -89,10 +103,30 @@ async def get_region_tour_sites(region_id: str, service: TourSitesRegionService 
     return tour_sites
 
 
-@router.post("/tour-site/{tour_site_id}", response_model=TourSitesRegionSchema, description="Update a tour site")
+@router.get("/tour-sites/{tour_site_id}", response_model=Union[TourSitesRegionSchema, None], description="Get a tour site by ID")
+@inject
+async def get_tour_site_by_id(tour_site_id: str, service: TourSitesRegionService = Depends(Provide[Container.tour_sites_region_service])):
+    """Route to get a tour site by ID"""
+    tour_site = await service.get_by_id(tour_site_id)
+
+    return tour_site
+
+
+@router.patch("/tour-site/{tour_site_id}", response_model=TourSitesRegionSchema, description="Route to update a tour site")
 @inject
 async def update_tour_site_by_id(tour_site_id: str, update_tour_site: UpdateTourSitesRegion, service: TourSitesRegionService = Depends(Provide[Container.tour_sites_region_service])):
     """Route to update a tour site by id"""
-    tour_sites = await service.update_by_id(tour_site_id, update_tour_site)
+    return await service.update_by_id(tour_site_id, update_tour_site)
 
-    return tour_sites
+
+@router.delete("/tour-site/{tour_site_id}", response_model=None, description="Delete a tour site")
+@inject
+async def delete_tour_site_by_id(tour_site_id: str, service: TourSitesRegionService = Depends(Provide[Container.tour_sites_region_service])):
+    """Route to delete a tour site by id"""
+    tour_site = await service.delete_by_id(tour_site_id)
+
+    if not tour_site:
+        raise GeneralError(
+            detail="Tour site has been deleted or does not exist")
+
+    return tour_site

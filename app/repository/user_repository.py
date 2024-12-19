@@ -68,6 +68,8 @@ class UserRepository(BaseRepository):
             except Exception as e:
                 await self.db_adapter.rollback(session)
                 raise e
+            except:
+                raise
 
     async def get_by_email(self, email: EmailStr, eager: bool = False) -> Union[User, None]:
         """

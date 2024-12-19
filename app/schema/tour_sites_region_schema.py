@@ -22,6 +22,7 @@ class UpdateTourSitesRegion(BaseModel):
     price: Union[float, None] = None
 
 class TourSitesRegionSchema(BaseModel):
+    id: UUID
     name: str
     description: Union[str, None] = None
     price: float = 0

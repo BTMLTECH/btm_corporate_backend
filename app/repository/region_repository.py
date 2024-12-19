@@ -3,15 +3,16 @@
 # Author: Oluwatobiloba Light
 """Region Repository"""
 
-from typing import Sequence, TypeVar
+from typing import Sequence, TypeVar, Union
 from uuid import UUID
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from app.adapter.sqlalchemy_adapter import SQLAlchemyAdapter
 from app.model.region import Region
 from app.repository.base_repository import BaseRepository
 from app.schema.region_schema import CreateRegion
 from psycopg2 import IntegrityError
-from app.core.exceptions import DuplicatedError, GeneralError
+from app.core.exceptions import DuplicatedError, GeneralError, NotFoundError
+from sqlalchemy.orm import joinedload
 
 
 T = TypeVar("T", bound=Region)
@@ -49,6 +50,31 @@ class RegionRepository(BaseRepository):
 
             return query
 
+    async def update_by_id(self, region_id: UUID, updated_fields: dict[str, any]):
+        """Update a region by ID"""
+        async with self.db_adapter.session() as session, session.begin():
+            try:
+                if self.model.id != region_id:
+                    raise NotFoundError(
+                        detail="Region not found or has been deleted")
+
+                query = update(self.model).where(self.model.id == region_id).values(
+                    {}).execution_options(synchronize_session="fetch")
+
+                result = (await session.execute(query))
+
+                q = select(self.model).where(self.model.id == region_id)
+
+                updated_record = (await session.execute(q)).scalar_one_or_none()
+
+                if result and result.rowcount < 1:
+                    return updated_record
+
+                return updated_record
+            except:
+                await self.db_adapter.rollback(session)
+                raise
+
     async def delete_by_id(self, region_id: UUID) -> bool:
         """Delete a region by ID"""
         region_deleted: bool = False
@@ -78,3 +104,16 @@ class RegionRepository(BaseRepository):
                 return result
             except Exception as e:
                 raise GeneralError(detail=str(e))
+
+    async def find_by_id(self, region_id: UUID) -> Union[Region, None]:
+        """Find a region by ID"""
+        async with self.db_adapter.session() as session, session.begin():
+            try:
+                query = select(self.model).where(self.model.id == region_id).options(
+                    joinedload(self.model.sites))
+
+                result = (await session.execute(query)).scalar_one_or_none()
+
+                return result
+            except:
+                raise
