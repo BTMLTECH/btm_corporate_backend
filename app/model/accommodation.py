@@ -2,9 +2,10 @@
 # File: accommodation.py
 # Author: Oluwatobiloba Light
 """Accommodation Model"""
+from typing import List
 from sqlalchemy import Column, Float, String
 from app.model.base_model import BaseModel
-from sqlmodel import Field
+from sqlmodel import Field, Relationship
 
 
 class Accommodation(BaseModel, table=True):
@@ -18,3 +19,4 @@ class Accommodation(BaseModel, table=True):
     
     price: float = Field(sa_column=Column("price",
                                        Float, default=0, nullable=False))
+    

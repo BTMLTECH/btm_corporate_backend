@@ -4,8 +4,9 @@
 """Transportation Database model"""
 
 
+from typing import List
 from sqlalchemy import Column, Float, String
-from sqlmodel import Field
+from sqlmodel import Field, Relationship
 from app.model.base_model import BaseModel
 
 

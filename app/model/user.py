@@ -5,11 +5,12 @@
 
 
 from datetime import datetime, timedelta
+from typing import List
 from uuid import UUID, uuid4
 from pydantic import EmailStr
 from sqlalchemy import Boolean, Column, DateTime, String, Boolean, text
 from sqlalchemy.sql import func
-from sqlmodel import Field
+from sqlmodel import Field, Relationship
 from app.model.base_model import BaseModel
 
 
@@ -42,6 +43,8 @@ class User(BaseModel, table=True):
 
     address: str = Field(sa_column=Column("address",
                                           String(255), default=None, nullable=True, ))
+    
+    tour_packages: List["TourPackage"] = Relationship(back_populates="user")
 
     is_admin: bool = Field(sa_column=Column(
         "is_admin", Boolean, default=False, ))

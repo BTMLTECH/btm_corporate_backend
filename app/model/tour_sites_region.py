@@ -8,6 +8,7 @@ from sqlalchemy import Column, Float, ForeignKey, String
 from app.model.base_model import BaseModel
 from sqlmodel import Field, Relationship
 from app.model.region import Region
+from app.model.tour_package import TourPackage
 
 
 class TourSitesRegion(BaseModel, table=True):
@@ -27,3 +28,4 @@ class TourSitesRegion(BaseModel, table=True):
 
     # Many-to-One relationship with Region
     region: Region = Relationship(back_populates="sites")
+
