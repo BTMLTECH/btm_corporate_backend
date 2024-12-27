@@ -7,6 +7,8 @@ from sqlalchemy import Column, Float, String
 from app.model.base_model import BaseModel
 from sqlmodel import Field, Relationship
 
+from app.model.tour_package_accommodation import TourPackageAccommodationLink
+
 
 class Accommodation(BaseModel, table=True):
     __tablename__: str = "accommodations"
@@ -20,3 +22,4 @@ class Accommodation(BaseModel, table=True):
     price: float = Field(sa_column=Column("price",
                                        Float, default=0, nullable=False))
     
+    tour_packages: List["TourPackage"] = Relationship(back_populates="accommodation", link_model=TourPackageAccommodationLink)

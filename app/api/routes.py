@@ -11,10 +11,10 @@ from app.api.endpoints.region import router as region_router
 from app.api.endpoints.activity import router as activity_router
 from app.api.endpoints.accommodation import router as accommodation_router
 from app.api.endpoints.transportation import router as transportation_router
-# from .endpoints.tour_sites_region import router
+from .endpoints.tour_package import router as tour_package_router
 
 routers = APIRouter()
-router_list = [auth_router, accommodation_router, activity_router, user_router, region_router, transportation_router]
+router_list = [auth_router, accommodation_router, activity_router, user_router, region_router, transportation_router, tour_package_router]
 
 for router in router_list:
     routers.include_router(router)

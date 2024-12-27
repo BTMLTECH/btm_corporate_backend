@@ -13,6 +13,7 @@ from app.repository.activity_repository import ActivityRepository
 from app.repository.auth_repository import AuthRepository
 from app.repository.google_repository import GoogleRepository
 from app.repository.region_repository import RegionRepository
+from app.repository.tour_package_repository import TourPackageRepository
 from app.repository.tour_sites_region_repository import TourSitesRegionRepository
 from app.repository.transportation_repository import TransportationRepository
 from app.repository.user_repository import UserRepository
@@ -20,7 +21,10 @@ from app.repository.user_verification_repository import UserVerificationReposito
 from app.services.accommodation_service import AccommodationService
 from app.services.activity_service import ActivityService
 from app.services.auth_service import AuthService
+from app.services.base_payment_service import PaymentService
+from app.services.payment.flutter_pay import FlutterPaymentGateway
 from app.services.region_service import RegionService
+from app.services.tour_package_service import TourPackageService
 from app.services.tour_sites_service import TourSitesRegionService
 from app.services.transportation_service import TransportationService
 from app.services.user_service import UserService
@@ -36,6 +40,7 @@ class Container(containers.DeclarativeContainer):
             "app.api.endpoints.user",
             "app.api.endpoints.region",
             "app.api.endpoints.transportation",
+            "app.api.endpoints.tour_package",
             "app.core.dependencies",
         ]
     )
@@ -47,6 +52,8 @@ class Container(containers.DeclarativeContainer):
     database_adapter = providers.Factory(
         SQLAlchemyAdapter, session=db.provided.session
     )
+
+    flutter_payment_gateway = providers.Singleton(FlutterPaymentGateway, flutter="sd")
 
     # Repositories
     user_repository = providers.Factory(
@@ -78,6 +85,9 @@ class Container(containers.DeclarativeContainer):
     
     tour_sites_region_repository = providers.Factory(
         TourSitesRegionRepository, db_adapter=database_adapter)
+    
+    tour_package_repository = providers.Factory(
+        TourPackageRepository, db_adapter=database_adapter)
 
     # Services
     auth_service = providers.Factory(
@@ -87,6 +97,8 @@ class Container(containers.DeclarativeContainer):
         user_repository=user_repository,
         google_repository=google_repository
     )
+
+    payment_service = providers.Factory(PaymentService, payment_gateway=flutter_payment_gateway)
 
     user_service = providers.Factory(
         UserService,
@@ -107,3 +119,7 @@ class Container(containers.DeclarativeContainer):
     
     tour_sites_region_service = providers.Factory(
         TourSitesRegionService, tour_sites_region_repository)
+    
+    
+    tour_package_service = providers.Factory(
+        TourPackageService, tour_package_repository, payment_service)

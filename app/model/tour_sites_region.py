@@ -2,13 +2,13 @@
 # File: model/tourist_sites_region.py
 # Author: Oluwatobiloba Light
 """Tourist sites in regions Model"""
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 from sqlalchemy import Column, Float, ForeignKey, String
 from app.model.base_model import BaseModel
 from sqlmodel import Field, Relationship
 from app.model.region import Region
-from app.model.tour_package import TourPackage
+from app.model.tour_package_tour_sites_region import TourPackageTourSitesRegionLink
 
 
 class TourSitesRegion(BaseModel, table=True):
@@ -28,4 +28,6 @@ class TourSitesRegion(BaseModel, table=True):
 
     # Many-to-One relationship with Region
     region: Region = Relationship(back_populates="sites")
+
+    tour_packages: List["TourPackage"] = Relationship(back_populates="tour_sites_region", link_model=TourPackageTourSitesRegionLink)
 

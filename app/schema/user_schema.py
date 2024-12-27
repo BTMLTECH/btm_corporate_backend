@@ -11,15 +11,12 @@ from pydantic import UUID4, BaseModel, EmailStr
 
 
 class BaseUser(BaseModel):
-    id: UUID4
+    id: UUID
 
     created_at: datetime
     updated_at: datetime
     deleted_at: Union[datetime, None] = None
     last_login_at: datetime
-
-    is_active: bool
-    is_admin: bool
 
     class Config:
         from_attributes = True
@@ -35,7 +32,6 @@ class UserCredentials(BaseModel):
 
 
 class UserSchema(BaseUser):
-    id: UUID
     name: str
     email: EmailStr
     password: Union[str, None] = None
@@ -43,6 +39,9 @@ class UserSchema(BaseUser):
     provider: Literal["google", "email"]
     email_verified: bool
     address: Union[str, None] = None
+
+    is_active: bool
+    is_admin: bool
 
 
 class UserVerificationSchema(BaseModel):
@@ -62,3 +61,19 @@ class UpdateUser(BaseModel):
     password: Union[str, None] = None
     phone: Union[str, None] = None
     address: Union[str, None] = None
+
+
+class UserResponseSchema(BaseUser):
+    name: str
+    email: EmailStr
+    phone: Union[str, None] = None
+
+    class Config:
+        # Exclude unwanted fields
+        exclude = {"password", "phone"}
+        # Exclude unwanted fields
+        fields = {
+            "is_admin": {"exclude": True},
+            "phone": {"exclude": True},
+            "address": {"exclude": True},
+        }

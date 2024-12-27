@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+# File: api/endpoints/tour_package.py
+# Author: Oluwatobiloba Light
+"""Tour Package endpoint"""
+
+
+from dependency_injector.wiring import Provide, inject
+from fastapi import APIRouter, Depends
+from app.core.dependencies import is_user_admin
+from app.schema.tour_package_schema import CreateTourPackage, TourPackageSchema
+from app.core.container import Container
+from app.schema.user_schema import UserResponseSchema
+from app.services.tour_package_service import TourPackageService
+
+
+router = APIRouter(
+    prefix="/tour-package",
+    tags=["Tour Package"],
+
+)
+
+
+@router.post("/add", response_model=TourPackageSchema, description="Create a new Tour Package")
+@inject
+async def add_tour_package(tour_package: CreateTourPackage, service: TourPackageService = Depends(Provide[Container.tour_package_service])):
+    """Route to add a tour package"""
+    result = await service.add(tour_package)
+
+    return result
