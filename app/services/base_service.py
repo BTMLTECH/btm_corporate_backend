@@ -26,7 +26,7 @@ class BaseService:
 
     async def add(self, schema: T) -> T:
         """Add a new record."""
-        return await self._repository.add(schema)
+        return await self._repository.create(schema)
     
     async def get_by_id(self, id: str) -> Union[Any, None]:
         """Get document by id"""

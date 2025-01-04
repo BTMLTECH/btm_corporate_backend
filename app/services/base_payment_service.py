@@ -5,19 +5,25 @@
 
 
 from abc import ABC, abstractmethod
+from typing import Any, Dict
+
+from app.repository.base_repository import BaseRepository
 
 
-class PaymentGateway(ABC,):
+class BasePaymentGateway(ABC):
     @abstractmethod
-    def process_payment(self, payment_request: dict[str, any]):
+    async def initiate_payment(self, payment_request: Dict[str, any]) -> Dict[str, Any]:
         """Process payment"""
         pass
 
 
 class PaymentService:
     """Payment Service"""
-    def __init__(self, payment_gateway: PaymentGateway):
-        self.payment_gateway = payment_gateway
+    def __init__(self, repository: BaseRepository, payment_gateway: BasePaymentGateway):
+        self._repository = repository
+        self._payment_gateway = payment_gateway
 
-    def process_payment(self, payment_request):
-        return self.payment_gateway.process_payment(payment_request)
+    async def make_payment(self, payment_request: Dict[str, any]):
+        """kjh"""
+        return await self._payment_gateway.initiate_payment(payment_request)
+    

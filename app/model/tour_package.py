@@ -3,12 +3,14 @@
 # Author: Oluwatobiloba Light
 """Tour Package Model"""
 
-from typing import List
+import enum
+from typing import List, Union
 from uuid import UUID
-from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, String, func, text
+from sqlalchemy import Boolean, Column, Date, DateTime, Enum, ForeignKey, Integer, String, func, text
 from sqlmodel import Field, Relationship
 from app.model.accommodation import Accommodation
 from app.model.base_model import BaseModel
+# from app.model.personal_package_payment import PersonalPackagePayment
 from app.model.region import Region
 from app.model.tour_package_accommodation import TourPackageAccommodationLink
 from app.model.tour_package_activity import TourPackageActivityLink
@@ -19,13 +21,48 @@ from datetime import datetime, date, timedelta
 from sqlalchemy.sql import func
 
 
+class TourPackagePaymentStatusType(str, enum.Enum):
+    """Tour Package payment Type"""
+    PENDING = "pending"
+    SUCCESS = "success"
+    FAILED = "failed"
+
+
+TourPackagePaymentStatusTypeEnum: Enum = Enum(
+    TourPackagePaymentStatusType,
+    name="tour_package_payment_status_type_enum",
+    create_constraint=True,
+    metadata=BaseModel.metadata,
+    validate_strings=True,
+)
+
+
 class TourPackage(BaseModel, table=True):
-    __tablename__: str = "tour_packages"
+    __tablename__: str = "user_tour_packages"
+
+    active: bool = Field(sa_column=Column("active", Boolean, default=False))
 
     user_id: UUID = Field(sa_column=Column(
         "user_id", ForeignKey(column="users.id", ondelete="CASCADE")))
 
     user: User = Relationship(back_populates="tour_packages")
+
+    # payment_id: Union[UUID, None] = Field(sa_column=Column(
+    #     "payment_id", ForeignKey(column="personal_package_payment.id"), default=None, nullable=True))
+
+    # payment: "PersonalPackagePayment" = Relationship(
+    #     back_populates="tour_package")
+
+    payment_status: TourPackagePaymentStatusType = Field(sa_column=Column("payment_status", TourPackagePaymentStatusTypeEnum, default=TourPackagePaymentStatusType.PENDING))
+
+    tx_ref: str = Field(sa_column=Column(
+        "tx_ref", String(255), default=None, nullable=True))
+    
+    payment_gateway: str = Field(sa_column=Column(
+        "payment_gateway", String(255), default=None, nullable=True))
+    
+    currency: str = Field(sa_column=Column(
+        "currency", String(255), default=None, nullable=True))
 
     region_id: UUID = Field(sa_column=Column(
         "region_id", ForeignKey(column="regions.id", ondelete="CASCADE")))
@@ -36,12 +73,10 @@ class TourPackage(BaseModel, table=True):
         back_populates="tour_packages", link_model=TourPackageTourSitesRegionLink)
 
     accommodation_id: UUID = Field(sa_column=Column(
-        "accommodation_id", ForeignKey(column="accommodations.id", ondelete="CASCADE")))
+        "accommodation_id", ForeignKey(column="accommodations.id")))
 
     accommodation: Accommodation = Relationship(
         back_populates="tour_packages", link_model=TourPackageAccommodationLink)
-
-    # transportations: List["Transportation"] = Relationship(link_model=TourPackageTransportationLink)
 
     no_of_people_attending: int = Field(sa_column=Column(
         "no_of_people_attending", Integer, default=1, nullable=False))

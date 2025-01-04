@@ -9,26 +9,6 @@ class SQLAlchemyAdapter(DatabaseAdapter):
     def __init__(self, session: Callable[[], AsyncSession]) -> None:
         self.session = session
 
-    # async def add(self, instance: Any) -> None:
-    #     async with self.session() as session:
-    #         session.add(instance)
-    #         # await session.commit()
-
-    # async def flush(self) -> None:
-    #     async with self.session() as session:
-    #         session.flush()
-
-    # async def refresh(self, instance: Any) -> None:
-    #     async with self.session() as session:
-    #         session.refresh(instance)
-
-    # async def commit(self) -> None:
-    #     await self.session().commit()
-
-    # async def rollback(self) -> None:
-    #     async with self.session() as session:
-    #         session.rollback()
-
     async def add(self, session: AsyncSession, instance: Any) -> None:
         session.add(instance)
 

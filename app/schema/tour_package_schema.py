@@ -12,6 +12,7 @@ from app.model.tour_sites_region import TourSitesRegion
 from app.model.transportation import Transportation
 from app.schema.accommodation_schema import AccommodationSchema
 from app.schema.base_schema import ModelBaseInfo
+from app.schema.payment_schema import PaymentRequest
 from app.schema.region_schema import RegionSchema
 from app.schema.user_schema import UserResponseSchema, UserSchema
 from datetime import date
@@ -42,6 +43,8 @@ class CreateTourPackage(BaseModel):
             UUID: lambda v: str(v),  # Convert UUID to string during serialization
         }
 
+class CreateTourPackageAndMakePayment(CreateTourPackage, PaymentRequest):
+    ...
 
 class TourPackageSchema(BaseModel):
     id: UUID

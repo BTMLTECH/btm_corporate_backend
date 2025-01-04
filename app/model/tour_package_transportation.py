@@ -13,7 +13,7 @@ class TourPackageTransportationLink(BaseModel, table=True):
 
     tour_package_id: UUID = Field(
         sa_column=Column("tour_package_id", ForeignKey(
-            "tour_packages.id", ondelete="CASCADE")),
+            "user_tour_packages.id", ondelete="CASCADE")),
     )
     transportation_id: UUID = Field(
         sa_column=Column("transportation_id", ForeignKey(

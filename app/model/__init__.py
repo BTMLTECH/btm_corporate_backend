@@ -9,3 +9,4 @@ from app.model.tour_package import TourPackage
 from app.model.tour_package_activity import TourPackageActivityLink
 from app.model.tour_package_tour_sites_region import TourPackageTourSitesRegionLink
 from app.model.tour_package_transportation import TourPackageTransportationLink
+from app.model.personal_package_payment import PersonalPackagePayment

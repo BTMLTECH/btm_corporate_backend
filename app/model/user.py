@@ -44,6 +44,8 @@ class User(BaseModel, table=True):
     address: str = Field(sa_column=Column("address",
                                           String(255), default=None, nullable=True, ))
     
+    payments: List["PersonalPackagePayment"] = Relationship(back_populates="user")
+    
     tour_packages: List["TourPackage"] = Relationship(back_populates="user")
 
     is_admin: bool = Field(sa_column=Column(

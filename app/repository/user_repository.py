@@ -84,6 +84,7 @@ class UserRepository(BaseRepository):
 
                 if query is None:
                     return None
+                
                 return query
             except Exception as e:
                 print("An error has occured", e)

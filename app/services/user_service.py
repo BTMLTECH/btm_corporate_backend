@@ -30,6 +30,15 @@ class UserService(BaseService):
             return None
         except ValueError as e:
             return None
+        
+    async def get_by_email(self, email: str) -> Union[User, None]:
+        """Get a user by id"""
+        try:
+            return await self.user_repository.get_by_email(email)
+        except Exception as e:
+            return None
+        except ValueError as e:
+            return None
 
     async def get_all(self) -> Sequence[User]:
         return await self.user_repository.get_all()

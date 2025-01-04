@@ -103,6 +103,10 @@ class Configs(BaseSettings):
         database=os.getenv("DB_LOCAL"),
     )
 
+    # Flutterwave
+    FLUTTERWAVE_SEC_KEY: str = os.getenv("FLUTTERWAVE_SEC_KEY")
+    FLUTTERWAVE_PUB_KEY: str = os.getenv("FLUTTERWAVE_pub_KEY")
+
     # REDIS
     REDIS_URL: str = os.getenv(
         "REDIS_HOST", "rediss://red-ct8rpqu8ii6s73cff68g:8FZX4gaRKDVAUq3C0IKMGNE7nVIeQTPF@oregon-redis.render.com:6379")
