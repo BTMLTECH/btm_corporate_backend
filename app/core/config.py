@@ -104,8 +104,8 @@ class Configs(BaseSettings):
     )
 
     # Flutterwave
-    FLUTTERWAVE_SEC_KEY: str = os.getenv("FLUTTERWAVE_SEC_KEY")
-    FLUTTERWAVE_PUB_KEY: str = os.getenv("FLUTTERWAVE_pub_KEY")
+    FLUTTERWAVE_SEC_KEY: Union[str, None] = os.getenv("FLUTTERWAVE_SEC_KEY")
+    FLUTTERWAVE_PUB_KEY: Union[str, None] = os.getenv("FLUTTERWAVE_pub_KEY")
 
     # REDIS
     REDIS_URL: str = os.getenv(
