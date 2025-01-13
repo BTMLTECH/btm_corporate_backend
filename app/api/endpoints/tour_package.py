@@ -24,8 +24,8 @@ router = APIRouter(
 
 @router.post("/add", response_model=TourPackageSchema, description="Create a new Tour Package")
 @inject
-async def add_tour_package(tour_package: CreateTourPackage, payment: PaymentRequest, service: TourPackagePaymentService = Depends(Provide[Container.tour_package_service])):
+async def add_tour_package(tour_package: CreateTourPackage, payment_request: PaymentRequest, service: TourPackagePaymentService = Depends(Provide[Container.tour_package_payment_service])):
     """Route to add a tour package"""
-    result = await service.create_tour_package(tour_package)
+    result = await service.create_tour_package(tour_package, payment_request)
 
     return result

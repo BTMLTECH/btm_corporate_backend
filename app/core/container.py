@@ -28,6 +28,7 @@ from app.services.base_payment_service import PaymentService
 from app.services.payment.flutter_pay import FlutterPaymentGateway
 from app.services.payment_service import PaymentGatewayService
 from app.services.region_service import RegionService
+from app.services.tour_package_payment_service import TourPackagePaymentService
 from app.services.tour_package_service import TourPackageService
 from app.services.tour_sites_service import TourSitesRegionService
 from app.services.transportation_service import TransportationService
@@ -46,7 +47,7 @@ class Container(containers.DeclarativeContainer):
             "app.api.endpoints.region",
             "app.api.endpoints.transportation",
             "app.api.endpoints.tour_package",
-            "app.api.endpoints.payment",
+            # "app.api.endpoints.payment",
             "app.core.dependencies",
         ]
     )
@@ -98,6 +99,12 @@ class Container(containers.DeclarativeContainer):
     payment_repository = providers.Factory(PaymentRepository, database_adapter)
 
     # Services
+    accommodation_service = providers.Factory(
+        AccommodationService, accommodation_repository=accommodation_repository)
+
+    activity_service = providers.Factory(
+        ActivityService, activity_repository=activity_repository)
+
     auth_service = providers.Factory(
         AuthService,
         auth_repository=auth_repository,
@@ -106,25 +113,14 @@ class Container(containers.DeclarativeContainer):
         google_repository=google_repository
     )
 
-    user_service = providers.Factory(
-        UserService,
-        user_repository=user_repository
-    )
-
     payment_gateway_service = providers.Factory(
+        PaymentGatewayService, payment_repository, flutter_payment_gateway)
+
+    payment_service = providers.Factory(
         PaymentGatewayService, payment_repository, flutter_payment_gateway)
 
     region_service = providers.Factory(
         RegionService, region_repository=region_repository)
-
-    accommodation_service = providers.Factory(
-        AccommodationService, accommodation_repository=accommodation_repository)
-
-    activity_service = providers.Factory(
-        ActivityService, activity_repository=activity_repository)
-
-    transportation_service = providers.Factory(
-        TransportationService, transportation_repository)
 
     tour_sites_region_service = providers.Factory(
         TourSitesRegionService, tour_sites_region_repository)
@@ -132,5 +128,14 @@ class Container(containers.DeclarativeContainer):
     tour_package_service = providers.Factory(
         TourPackageService, tour_package_repository)
 
-    payment_service = providers.Factory(
-        PaymentGatewayService, payment_repository, flutter_payment_gateway)
+    tour_package_payment_service = providers.Factory(
+        TourPackagePaymentService, tour_package_service, payment_service=payment_gateway_service
+    )
+
+    transportation_service = providers.Factory(
+        TransportationService, transportation_repository)
+
+    user_service = providers.Factory(
+        UserService,
+        user_repository=user_repository
+    )
