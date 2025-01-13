@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import (
 from app.core.config import configs
 
 
+
 Base: DeclarativeBase = declarative_base()
 
 # class Base(DeclarativeBase):
@@ -32,7 +33,8 @@ class Database:
         self._engine: AsyncEngine = create_async_engine(
             db_url,
             pool_pre_ping=True,
-            echo=False
+            echo=False,
+            # connect_args={ "ssl": True},
         )
 
         # self._sessionmaker: async_scoped_session = async_scoped_session(
