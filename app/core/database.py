@@ -70,7 +70,7 @@ class Database:
                     await conn.run_sync(Base.metadata.drop_all, checkfirst=True)
 
                 # await conn.run_sync(Base.metadata.drop_all)
-                await conn.run_sync(Base.metadata.create_all)
+                await conn.run_sync(Base.metadata.create_all, checkfirst=True)
 
     @asynccontextmanager
     async def session(self) -> AsyncGenerator[AsyncSession, Any]:
