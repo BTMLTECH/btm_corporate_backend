@@ -5,6 +5,7 @@
 
 
 from uuid import UUID
+from app.core.exceptions import GeneralError
 from app.model.transportation import Transportation
 from app.repository.transportation_repository import TransportationRepository
 from app.schema.transportation_schema import CreateTransportation
@@ -24,3 +25,10 @@ class TransportationService(BaseService):
     async def delete_by_id(self, transportation_id: str):
         """Delete a transportation by id"""
         return await self.transportation_repository.delete_by_id(UUID(transportation_id))
+
+    async def get_all(self):
+        """Get a list of transportations"""
+        try:
+            return await self.transportation_repository.get_all()
+        except:
+            raise GeneralError(detail="An unknown error has occured!")

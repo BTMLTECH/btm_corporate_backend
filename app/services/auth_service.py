@@ -24,6 +24,7 @@ from app.schema.google_schema import GoogleSchema
 from app.schema.user_schema import UserSchema, UserVerificationSchema
 from smtplib import SMTP
 from email.mime.text import MIMEText
+from os import getenv
 
 from app.services.base_service import BaseService
 from app.services.mail_service import EmailService
@@ -144,7 +145,7 @@ class AuthService(BaseService):
 
             session_id = uuid4()
 
-            send_email = await email_service.send_verification_email(session_id, new_user.email, "http://127.0.0.1/verify")
+            send_email = await email_service.send_verification_email(session_id, new_user.email, getenv("API_URI", "https://btmghana.net") + "/verify")
 
             user_verification = UserVerification(
                 session_id=session_id, email=send_email.get("email"), token=access_token)

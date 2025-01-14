@@ -109,8 +109,8 @@ class TourSitesRegionRepository(BaseRepository):
                 result = (await session.execute(query)).scalars().all()
 
                 return result
-            except Exception as e:
-                raise GeneralError(detail=str(e))
+            except:
+                raise
 
     async def find_by_id(self, tour_site_id: UUID) -> Union[TourSitesRegion, None]:
         """Find a tour site by ID"""

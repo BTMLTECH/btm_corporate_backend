@@ -41,3 +41,9 @@ async def delete_transportation(transportation_id: str, service: TransportationS
         raise GeneralError(detail="Transportation has been deleted or does not exist")
 
     return transportation
+
+@router.get("")
+@inject
+async def get_transportations(service: TransportationService = Depends(Provide[Container.transportation_service])):
+    """Route to get a list of transportations"""
+    return await service.get_all()

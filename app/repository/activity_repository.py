@@ -5,7 +5,7 @@
 
 from typing import TypeVar
 from uuid import UUID
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from app.adapter.sqlalchemy_adapter import SQLAlchemyAdapter
 from app.model.activity import Activity
 from app.repository.base_repository import BaseRepository
@@ -66,3 +66,15 @@ class ActivityRepository(BaseRepository):
                 return False
 
         return activity_deleted
+
+    async def get_all(self):
+        """Get list of activities"""
+        query = select(self.model)
+
+        async with self.db_adapter.session() as session, session.begin():
+            try:
+                result = (await session.execute(query)).scalars().all()
+
+                return result
+            except:
+                raise

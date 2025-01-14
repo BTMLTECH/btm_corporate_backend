@@ -49,7 +49,7 @@ async def delete_region(region_id: str, service: RegionService = Depends(Provide
     return region
 
 
-@router.get("/all", response_model=Sequence[RegionSchema],
+@router.get("", response_model=Sequence[RegionSchema],
             description="Get a list of all regions",
             )
 @inject
