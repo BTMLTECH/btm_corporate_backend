@@ -5,7 +5,7 @@
 
 from typing import TypeVar
 from uuid import UUID
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from app.adapter.sqlalchemy_adapter import SQLAlchemyAdapter
 from app.model.accommodation import Accommodation
 from app.repository.base_repository import BaseRepository
@@ -66,3 +66,16 @@ class AccommodationRepository(BaseRepository):
                 return False
 
         return accommodation_deleted
+
+    async def get_all(self):
+        """Get list of all accommodations"""
+        async with self.db_adapter.session() as session, session.begin():
+            query = select(self.model)
+
+            try:
+                result = (await session.execute(query)).scalars().all()
+
+                return result
+            except:
+                raise
+

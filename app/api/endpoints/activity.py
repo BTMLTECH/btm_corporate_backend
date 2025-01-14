@@ -41,3 +41,9 @@ async def delete_activity(activity_id: str, service: ActivityService = Depends(P
         raise GeneralError(detail="Activity has been deleted or does not exist")
 
     return activity
+
+@router.get("")
+@inject
+async def get_activities(service: ActivityService = Depends(Provide[Container.activity_service])):
+    """Route to get all activities"""
+    return await service.get_all()

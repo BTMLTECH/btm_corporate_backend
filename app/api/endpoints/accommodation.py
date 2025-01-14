@@ -41,3 +41,9 @@ async def delete_accommodation(accommodation_id: str, service: AccommodationServ
         raise GeneralError(detail="Accommodation has been deleted or does not exist")
 
     return accommodation
+
+@router.get("")
+@inject
+async def get_accommodations(service: AccommodationService = Depends(Provide[Container.accommodation_service])):
+    """Route to get list of accommodations"""
+    return await service.get_all()

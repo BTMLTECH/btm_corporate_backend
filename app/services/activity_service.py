@@ -5,6 +5,7 @@
 
 
 from uuid import UUID
+from app.core.exceptions import GeneralError
 from app.model.activity import Activity
 from app.repository.activity_repository import ActivityRepository
 from app.schema.activity_schema import CreateActivity
@@ -24,3 +25,10 @@ class ActivityService(BaseService):
     async def delete_by_id(self, activity_id: str):
         """Delete an activity by id"""
         return await self.activity_repository.delete_by_id(UUID(activity_id))
+    
+    async def get_all(self):
+        """Get list of activities"""
+        try:
+            return await self.activity_repository.get_all()
+        except:
+            raise GeneralError(detail="An unknown error has occured!")

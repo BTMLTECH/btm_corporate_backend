@@ -56,7 +56,10 @@ class RegionService(BaseService):
 
     async def find_all_regions(self):
         """Get all regions"""
-        return await self.region_repository.find_all()
+        try:
+            return await self.region_repository.find_all()
+        except:
+            raise GeneralError(detail="An unknown error has occured!")
 
     async def find_by_id(self, region_id: str):
         """Find a region by ID"""
