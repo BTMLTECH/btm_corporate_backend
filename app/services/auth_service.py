@@ -299,11 +299,11 @@ class AuthService(BaseService):
         """"""
         token_id = str(uuid4())
 
-        verification_data = {
-            "id": token_id,
-            "email": email,
-            "token": token
-        }
+        # verification_data = {
+        #     "id": token_id,
+        #     "email": email,
+        #     "token": token
+        # }
 
         # Plain text content
         text = """\
@@ -311,7 +311,7 @@ class AuthService(BaseService):
         Thanks for signing up on BTM Ghana!
         To complete your registration, please click on the link below to verify your email address:
         
-        http://127.0.0.1:5173/verify?token={0}
+        https://btmghana.net/verify?token={0}
         
         If you didn't request this email, please ignore it.
         

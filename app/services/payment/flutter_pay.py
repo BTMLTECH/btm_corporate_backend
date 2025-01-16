@@ -33,7 +33,7 @@ class FlutterPaymentGateway(BasePaymentGateway):
         """Start a card transaction"""
         payload_dict = payload.model_dump(exclude=["fields", "mode"])
 
-        payload_dict["redirect_url"] = "http://127.0.0.1:5173/tours/package/payment/verify"
+        payload_dict["redirect_url"] = "https://btmghana.net/tours/package/payment/verify"
         payload_dict["tx_ref"] = generate_transaction_reference()
 
         if "mode" in payload.model_dump():
