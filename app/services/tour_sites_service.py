@@ -42,7 +42,7 @@ class TourSitesRegionService(BaseService):
         except:
             raise GeneralError(detail="An unknown error has occured")
 
-    async def find_all_tour_sites(self) -> Sequence[TourSitesRegion]:
+    async def get_all_tour_sites(self) -> Sequence[TourSitesRegion]:
         """Get all regions"""
         return await self.tour_sites_region_repository.find_all()
 

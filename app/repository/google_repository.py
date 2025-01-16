@@ -52,9 +52,9 @@ class GoogleRepository(BaseRepository):
                 if query is None:
                     return None
                 return query
-            except Exception as e:
-                print("An error has occured", e)
-                raise e     
+            except:
+                print("An error has occured")
+                raise    
    
     async def delete_by_state(self, state: str) -> bool:
         """Delete user verification data """
@@ -69,8 +69,8 @@ class GoogleRepository(BaseRepository):
                     return False
 
                 return True
-            except Exception as e:
-                print("An error has occured", e)
+            except:
+                print("An error has occured")
                 await self.db_adapter.rollback(session)
-                raise e
+                raise
             

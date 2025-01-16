@@ -1,0 +1,27 @@
+{
+  "tour_package": {
+    "accommodation_id": "f900bf9c-443c-4386-835c-05ecb38bf4ad",
+    "activities": ["4096f370-a845-4feb-a319-778266c9f713", "0d8e26d6-e5b8-4002-8aa8-18e78e917f22"],
+    "no_of_people_attending": 1,
+    "start_date": "2025-01-15",
+    "end_date": "2025-01-19",
+    "name": "Tobi Light",
+    "email": "oluwatobilobagunloye@gmail.com",
+    "contact": "9056347603",
+    "region_id": "770cfc0b-15f1-4cad-b74a-a087ea89d216",
+    "transportations": ["0d8b713c-0e3d-4fbd-907b-323a9e7bc4ae"],
+    "tour_sites_region": ["1297afb5-18f8-444a-9bf8-511560f58c3a"]
+  },
+  "payment_request": {
+    "amount": "1",
+    "currency": "USD",
+    "card_number": "4556052704172643",
+    "cvv": "899",
+    "expiry_month": "09",
+    "expiry_year": "32",
+    "email": "oluwatobilobagunloye@gmail.com",
+    "tour_package_id": "bf3f5ddc-c14b-48dc-a003-a4c34ee22bc8",
+    "mode": "string",
+    "fields": {}
+  }
+}

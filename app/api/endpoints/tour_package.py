@@ -18,11 +18,10 @@ from app.services.tour_package_service import TourPackageService
 router = APIRouter(
     prefix="/tour-package",
     tags=["Tour Package"],
-
 )
 
 
-@router.post("/add", response_model=TourPackageSchema, description="Create a new Tour Package")
+@router.post("/add", response_model=None, description="Create a new Tour Package")
 @inject
 async def add_tour_package(tour_package: CreateTourPackage, payment_request: PaymentRequest, service: TourPackagePaymentService = Depends(Provide[Container.tour_package_payment_service])):
     """Route to add a tour package"""

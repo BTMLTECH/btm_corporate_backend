@@ -16,6 +16,7 @@ class FlutterPaymentRequest(BaseModel):
     cvv: str = Field(default="564")
     expiry_month: Union[str, int]
     expiry_year: Union[str, int]
+    name: str
     email: str
     user_id: Union[str, None] = None
     # tx_ref: str
@@ -49,3 +50,6 @@ class PackagePaymentSchema(BaseModel):
     amount: Union[str, int] = 1
     currency: str = "USD"
     tour_package_id: UUID
+
+class VerifyPayment(BaseModel):
+    tx_ref: str

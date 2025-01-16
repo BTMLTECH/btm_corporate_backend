@@ -4,19 +4,14 @@
 """Tour Package Payment Services"""
 
 
-from uuid import UUID
-
-from aiohttp import ClientConnectorDNSError
-from app.core.exceptions import AuthForbiddenError, DuplicatedError, GeneralError, NotFoundError, ServerError
-from app.repository.payment_repository import PaymentRepository
-from app.schema.payment_schema import FlutterPaymentRequest, PackagePaymentSchema, PaymentRequest
-from app.schema.tour_package_schema import CreateTourPackage, CreateTourPackageAndMakePayment
-from app.services.base_payment_service import BasePaymentGateway, PaymentService
-from app.services.base_service import BaseService
-from app.services.payment.flutter_pay import FlutterPaymentGateway
+from typing import Any, Dict
+from app.core.exceptions import GeneralError
+from app.model.personal_package_payment import PersonalPackagePayment
+from app.model.tour_package import TourPackage
+from app.schema.payment_schema import PaymentRequest
+from app.schema.tour_package_schema import CreateTourPackage
 from app.services.payment_service import PaymentGatewayService
 from app.services.tour_package_service import TourPackageService
-from app.services.user_service import UserService
 
 
 class TourPackagePaymentService:
@@ -30,14 +25,26 @@ class TourPackagePaymentService:
 
     async def create_tour_package(self, tour_package: CreateTourPackage, payment_request: PaymentRequest):
         """Orchestrate tour package creation and payment processing."""
-        print(tour_package, payment_request)
-        return None
         # Step 1: Validate and create the tour package
-        # tour_package = await self.tour_package_service.add(schema)
-
+        new_tour_package: TourPackage
+        try:
+            new_tour_package = await self.tour_package_service.add(tour_package)
+        except Exception as e:
+            # delete tour package
+            return GeneralError(detail="Tour failed")
         # Step 2: Process payment
-        # payment_request = {}
-        payment_result = await self.payment_service.process_payment()
+        try:
+            payment_request.tour_package_id = str(new_tour_package.id)
+
+            payment_result = await self.payment_service.process_payment(payment_request)
+        except Exception as e:
+            # delete tour package
+            await self.tour_package_service.delete_by_id(str(new_tour_package.id))
+            return e
+            return GeneralError(detail="Payment failed")
+
+
+        return payment_result
 
         # Step 3: Update the tour package with payment details (optional)
         tour_package.payment_intent_id = payment_result["payment_intent_id"]

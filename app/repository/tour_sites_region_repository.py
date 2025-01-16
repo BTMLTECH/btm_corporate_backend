@@ -101,7 +101,7 @@ class TourSitesRegionRepository(BaseRepository):
         return tour_sites_region_deleted
 
     async def find_all(self) -> Sequence[TourSitesRegion]:
-        """Returns a list of all regions"""
+        """Returns a list of all toursites in regions"""
         async with self.db_adapter.session() as session, session.begin():
             query = select(self.model).options(joinedload(self.model.region))
 

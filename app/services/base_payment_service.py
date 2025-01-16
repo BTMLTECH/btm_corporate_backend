@@ -16,6 +16,11 @@ class BasePaymentGateway(ABC):
         """Process payment"""
         pass
 
+    @abstractmethod
+    async def verify_payment(self, tx_ref: str) -> Dict[str, Any]:
+        """Process payment"""
+        pass
+
 
 class PaymentService:
     """Payment Service"""
