@@ -46,15 +46,15 @@ class AuthService(BaseService):
         if not user:
             raise AuthError(detail="Incorrect email or password")
 
-        if not user.is_active:
-            raise AuthError(detail="Account is not active")
-
         if user.provider == 'google':
             raise AuthError(detail="You signed up using a different method.")
 
         if (user.password and sign_in_info.password) and\
                 not verify_password(sign_in_info.password, user.password):
             raise AuthError(detail="Incorrect email or password")
+        
+        if not user.is_active:
+            raise AuthError(detail="Account is not active")
 
         delattr(user, "password")
 
@@ -247,11 +247,13 @@ class AuthService(BaseService):
         received_state = state
 
         if not stored_state or not received_state or stored_state.state != received_state:
+            await self.google_repository.delete_by_state(state)
             return AuthError(detail="Authentication failed. Please try again")
 
         flow = google_login_auth.google_auth_flow(code)
 
         if flow is None:
+            await self.google_repository.delete_by_state(state)
             return GeneralError(detail="Authorization failed. Please try again!")
 
         credentials = flow.credentials
@@ -268,9 +270,11 @@ class AuthService(BaseService):
         try:
             user_info: Optional[Mapping[str, Any]] = google_login_auth.verify_google_token(
                 id_token=credentials._id_token)
-
-            # check if user already exists
-            existing_user = await self.user_repository.get_by_email(user_info.get('email'))
+            
+            existing_user: Union[User, None]
+            if user_info is not None:
+                # check if user already exists
+                existing_user = await self.user_repository.get_by_email(user_info.get('email', ""))
 
             if existing_user is not None:
                 await self.google_repository.delete_by_state(state)

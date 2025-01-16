@@ -47,7 +47,7 @@ class Container(containers.DeclarativeContainer):
             "app.api.endpoints.region",
             "app.api.endpoints.transportation",
             "app.api.endpoints.tour_package",
-            # "app.api.endpoints.payment",
+            "app.api.endpoints.payment",
             "app.core.dependencies",
         ]
     )
@@ -116,8 +116,8 @@ class Container(containers.DeclarativeContainer):
     payment_gateway_service = providers.Factory(
         PaymentGatewayService, payment_repository, flutter_payment_gateway)
 
-    payment_service = providers.Factory(
-        PaymentGatewayService, payment_repository, flutter_payment_gateway)
+    # payment_service = providers.Factory(
+    #     PaymentGatewayService, payment_repository, flutter_payment_gateway)
 
     region_service = providers.Factory(
         RegionService, region_repository=region_repository)
@@ -129,7 +129,7 @@ class Container(containers.DeclarativeContainer):
         TourPackageService, tour_package_repository)
 
     tour_package_payment_service = providers.Factory(
-        TourPackagePaymentService, tour_package_service, payment_service=payment_gateway_service
+        TourPackagePaymentService, tour_package_service=tour_package_service, payment_service=payment_gateway_service
     )
 
     transportation_service = providers.Factory(

@@ -98,4 +98,6 @@ async def verify_sign_up(user_verification: VerifyUser, auth: AuthService = Depe
 @inject
 async def validate_session(service: UserService = Depends(Provide[Container.user_service]), current_user: User = Depends(get_current_user)):
     """Update a user profile"""
+    if not current_user.is_active:
+        raise AuthError(detail="Account is not active")
     return current_user

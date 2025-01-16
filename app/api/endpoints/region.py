@@ -37,6 +37,17 @@ async def add_region(region: CreateRegion, service: RegionService = Depends(Prov
     return region
 
 
+@router.get("/tour-sites", response_model=Sequence[TourSitesRegionSchema],
+            description="Get a list of all Tourist sites in all Regions",
+            )
+@inject
+async def get_all_tour_sites(service: TourSitesRegionService = Depends(Provide[Container.tour_sites_region_service])):
+    """Route to get a list of all tour sites in all regions"""
+    regions = await service.get_all_tour_sites()
+
+    return regions
+
+
 @router.delete("/{region_id}")
 @inject
 async def delete_region(region_id: str, service: RegionService = Depends(Provide[Container.region_service]), current_user: User = Depends(is_user_admin)):
@@ -74,17 +85,6 @@ async def update_region_by_id(region_id: str, updated_region: UpdateRegion, serv
     return await service.update_by_id(region_id, updated_region)
 
 
-@router.get("/tour-sites", response_model=Sequence[TourSitesRegionSchema],
-            description="Get a list of all Tourist sites in all Regions",
-            )
-@inject
-async def get_all_tour_sites(service: TourSitesRegionService = Depends(Provide[Container.tour_sites_region_service])):
-    """Route to get a list of all tour sites in all regions"""
-    regions = await service.find_all_tour_sites()
-
-    return regions
-
-
 @router.post("/add/tour-sites", response_model=TourSitesRegionSchema)
 @inject
 async def create_region_tour_site(tour_site: CreateTourSitesRegion, service: TourSitesRegionService = Depends(Provide[Container.tour_sites_region_service])):
@@ -94,13 +94,13 @@ async def create_region_tour_site(tour_site: CreateTourSitesRegion, service: Tou
     return tour_site
 
 
-@router.get("/{region_id}/tour-sites", response_model=Sequence[TourSitesRegionSchema], description="Get all tour sites in a region")
-@inject
-async def get_region_tour_sites(region_id: str, service: TourSitesRegionService = Depends(Provide[Container.tour_sites_region_service])):
-    """Route to get all tour sites of a region"""
-    tour_sites = await service.find_all_tour_sites_by_region(region_id)
+# @router.get("/{region_id}/tour-sites", response_model=Sequence[TourSitesRegionSchema], description="Get all tour sites in a region")
+# @inject
+# async def get_region_tour_sites(region_id: str, service: TourSitesRegionService = Depends(Provide[Container.tour_sites_region_service])):
+#     """Route to get all tour sites of a region"""
+#     tour_sites = await service.find_all_tour_sites_by_region(region_id)
 
-    return tour_sites
+#     return tour_sites
 
 
 @router.get("/tour-sites/{tour_site_id}", response_model=Union[TourSitesRegionSchema, None], description="Get a tour site by ID")

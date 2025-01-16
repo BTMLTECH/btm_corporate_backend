@@ -20,13 +20,13 @@ from app.services.user_service import UserService
 class PaymentGatewayService(BaseService):
     def __init__(self, repository: PaymentRepository, payment_gateway: BasePaymentGateway):
         self.repository = repository
-        self.payment_gateway = payment_gateway
+        self._payment_gateway = payment_gateway
 
         super().__init__(repository)
 
     async def process_payment(self, payment_request: FlutterPaymentRequest):
         try:
-            req = await self.payment_gateway.initiate_payment(payment_request)
+            req = await self._payment_gateway.initiate_payment(payment_request)
 
             if 'status' in req:
                 if req["status"] == "success":
@@ -53,3 +53,10 @@ class PaymentGatewayService(BaseService):
         except Exception as e:
             print("errr", e)
             raise GeneralError(detail=str(e))
+
+    async def verify_payment(self, tx_ref: str):
+        """whoo"""
+        try:
+            return await self._payment_gateway.verify_payment(tx_ref)
+        except:
+            raise GeneralError(detail="Payment failed")

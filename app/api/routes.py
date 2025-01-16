@@ -15,7 +15,7 @@ from .endpoints.tour_package import router as tour_package_router
 from .endpoints.payment import router as payment_router
 
 routers = APIRouter()
-router_list = [auth_router, accommodation_router, activity_router, user_router, region_router, transportation_router, tour_package_router]
+router_list = [auth_router, accommodation_router, activity_router, user_router, region_router, transportation_router, tour_package_router, payment_router]
 
 for router in router_list:
     routers.include_router(router)

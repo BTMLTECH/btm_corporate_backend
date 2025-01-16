@@ -46,7 +46,7 @@ class User(BaseModel, table=True):
     
     payments: List["PersonalPackagePayment"] = Relationship(back_populates="user")
     
-    tour_packages: List["TourPackage"] = Relationship(back_populates="user")
+    # tour_packages: List["TourPackage"] = Relationship(back_populates="user")
 
     is_admin: bool = Field(sa_column=Column(
         "is_admin", Boolean, default=False, ))

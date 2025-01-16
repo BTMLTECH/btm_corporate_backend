@@ -10,7 +10,7 @@ from sqlalchemy import delete, select, update
 from app.adapter.sqlalchemy_adapter import SQLAlchemyAdapter
 from app.model.accommodation import Accommodation
 from app.model.activity import Activity
-from app.model.tour_package import TourPackage
+from app.model.tour_package import TourPackage, TourPackagePaymentStatusType
 from app.model.tour_sites_region import TourSitesRegion
 from app.model.transportation import Transportation
 from app.model.user import User
@@ -36,18 +36,27 @@ class TourPackageRepository(BaseRepository):
         """Create a tour package"""
         async with self.db_adapter.session() as session, session.begin():
             try:
-                user_query = select(User).where(
-                    User.id == schema.user_id)
+                # user_query = select(User).where(
+                #     User.id == schema.user_id)
 
-                user_result = (await session.execute(user_query)).scalar_one_or_none()
+                # user_result = (await session.execute(user_query)).scalar_one_or_none()
 
-                if not user_result:
-                    raise NotFoundError(detail="User not found or deleted")
+                # if not user_result:
+                #     raise NotFoundError(detail="User not found or deleted")
+                schema_dict = {
+                    "active": False,
+                    "user_fullname": schema.name,
+                    "user_email": schema.email,
+                    "user_contact": schema.contact,
+                    "user_address": schema.address,
+                    "accommodation_id": schema.accommodation_id,
+                    "no_of_people_attending": schema.no_of_people_attending,
+                    "start_date": schema.start_date,
+                    "end_date": schema.end_date,
+                }
 
-                query = self.model(**schema.model_dump(exclude_none=True, exclude=[
-                                   "user", "activities", "tour_sites_region", "transportations"]))
 
-                query.user = user_result
+                query = self.model(**schema_dict)
 
                 accommodation_query = select(Accommodation).where(
                     Accommodation.id == schema.accommodation_id)
@@ -60,17 +69,17 @@ class TourPackageRepository(BaseRepository):
                 
                 query.accommodation = accommodation
 
-                tour_sites_region_ids = set(schema.tour_sites_region)
+                tour_sites_tour_package_ids = set(schema.tour_sites_region)
 
                 tour_sites_query = select(TourSitesRegion).where(
-                    TourSitesRegion.id.in_(tour_sites_region_ids))
+                    TourSitesRegion.id.in_(tour_sites_tour_package_ids))
 
                 tour_sites_region_result = (await session.execute(tour_sites_query)).scalars().all()
 
-                existing_tour_sites_region_ids = set(
+                existing_tour_sites_tour_package_ids = set(
                     str(tour_sites.id) for tour_sites in tour_sites_region_result)
 
-                missing_tour_sites_ids = tour_sites_region_ids - existing_tour_sites_region_ids
+                missing_tour_sites_ids = tour_sites_tour_package_ids - existing_tour_sites_tour_package_ids
 
                 if missing_tour_sites_ids:
                     raise NotFoundError(
@@ -123,7 +132,6 @@ class TourPackageRepository(BaseRepository):
                     selectinload(self.model.tour_sites_region),
                     selectinload(self.model.transportation),
                     selectinload(self.model.region),
-                    selectinload(self.model.user).load_only(User.id, User.email, User.name),
                 ).where(self.model.id == query.id)
 
                 query = (await session.execute(query)).scalar_one()
@@ -134,9 +142,31 @@ class TourPackageRepository(BaseRepository):
                 await session.rollback()
                 raise e
             except Exception as e:
+                print("error", e)
                 await session.rollback()
                 raise GeneralError(detail=str(e))
+            except:
+                await session.rollback()
+                raise
             else:
                 await self.db_adapter.commit(session)
 
             return query
+
+    async def delete_by_id(self, tour_package_id: UUID) -> bool:
+        """Delete a tour_sites_region by ID"""
+        tour_package: bool = False
+        async with self.db_adapter.session() as session, session.begin():
+            try:
+                query = delete(self.model).where(self.model.id == tour_package_id)
+
+                result = (await session.execute(query))
+
+                if result.rowcount < 1:
+                    tour_package = False
+                else:
+                    tour_package = True
+            except Exception as e:
+                return False
+
+        return tour_package

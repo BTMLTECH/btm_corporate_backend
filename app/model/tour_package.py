@@ -23,9 +23,9 @@ from sqlalchemy.sql import func
 
 class TourPackagePaymentStatusType(str, enum.Enum):
     """Tour Package payment Type"""
-    PENDING = "pending"
-    SUCCESS = "success"
-    FAILED = "failed"
+    PENDING = "PENDING"
+    SUCCESS = "SUCCESS"
+    FAILED = "FAILED"
 
 
 TourPackagePaymentStatusTypeEnum: Enum = Enum(
@@ -42,10 +42,18 @@ class TourPackage(BaseModel, table=True):
 
     active: bool = Field(sa_column=Column("active", Boolean, default=False))
 
-    user_id: UUID = Field(sa_column=Column(
-        "user_id", ForeignKey(column="users.id", ondelete="CASCADE")))
+    # user_id: UUID = Field(sa_column=Column(
+    #     "user_id", ForeignKey(column="users.id", ondelete="CASCADE")))
 
-    user: User = Relationship(back_populates="tour_packages")
+    # user: User = Relationship(back_populates="tour_packages")
+
+    user_fullname: str = Field(sa_column=Column("user_fullname", String, nullable=False))
+
+    user_email: str = Field(sa_column=Column("user_email", String, nullable=False))
+
+    user_contact: Union[str, None] = Field(sa_column=Column("user_contact", String, nullable=True, default=None))
+
+    user_address: Union[str, None] = Field(sa_column=Column("user_address", String, nullable=True, default=None))
 
     # payment_id: Union[UUID, None] = Field(sa_column=Column(
     #     "payment_id", ForeignKey(column="personal_package_payment.id"), default=None, nullable=True))
@@ -53,7 +61,7 @@ class TourPackage(BaseModel, table=True):
     # payment: "PersonalPackagePayment" = Relationship(
     #     back_populates="tour_package")
 
-    payment_status: TourPackagePaymentStatusType = Field(sa_column=Column("payment_status", TourPackagePaymentStatusTypeEnum, default=TourPackagePaymentStatusType.PENDING))
+    payment_status: Union[TourPackagePaymentStatusType, None] = Field(sa_column=Column("payment_status", Enum(TourPackagePaymentStatusType, name="tour_package_payment_status_type_enum"), default=TourPackagePaymentStatusType.PENDING, nullable=True))
 
     tx_ref: str = Field(sa_column=Column(
         "tx_ref", String(255), default=None, nullable=True))

@@ -33,7 +33,7 @@ class FlutterPaymentGateway(BasePaymentGateway):
         """Start a card transaction"""
         payload_dict = payload.model_dump(exclude=["fields", "mode"])
 
-        payload_dict["redirect_url"] = "http://127.0.0.1:8000/api/payment/verify"
+        payload_dict["redirect_url"] = "http://127.0.0.1:5173/tours/package/payment/verify"
         payload_dict["tx_ref"] = generate_transaction_reference()
 
         if "mode" in payload.model_dump():
@@ -155,12 +155,14 @@ class FlutterPaymentGateway(BasePaymentGateway):
                                     if "authorization" in response_data["meta"]:
                                         if response_data["meta"]["authorization"]["mode"] == "otp":
                                             # return response_data
-                                            print(
-                                                response_data["data"])
                                             return {
                                                 "tx_ref": response_data["data"]["tx_ref"],
                                                 "flw_ref": response_data["data"]["flw_ref"],
                                                 "message": response_data["data"]["processor_response"],
+                                                **response_data["meta"]
+                                            }
+                                        elif response_data["meta"]["authorization"]["mode"] == "avs_noauth":
+                                            return {
                                                 **response_data["meta"]
                                             }
                                         return {
@@ -175,7 +177,6 @@ class FlutterPaymentGateway(BasePaymentGateway):
             raise
 
     async def initiate_payment(self, payment_request):
-        print("flutterrr")
         return await self._charge_card(payment_request)
 
     def getKey(self, secret_key):
@@ -209,3 +210,43 @@ class FlutterPaymentGateway(BasePaymentGateway):
         encrypted_base64 = base64.b64encode(encrypted_bytes).decode("utf-8")
 
         return encrypted_base64
+
+    async def verify_payment(self, tx_ref: str):
+        """Verify Flutterwave payment"""
+
+        headers = {
+            "accept": "application/json",
+            "Authorization": "Bearer {}".format(configs.FLUTTERWAVE_SEC_KEY),
+            "Content-Type": "application/json"
+        }
+
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get("https://api.flutterwave.com/v3/transactions/verify_by_reference?tx_ref={}".format(tx_ref), headers=headers) as response:
+                    response_data = await response.json()
+
+                    if response_data:
+                        if "status" in response_data and response_data["status"] != "success":
+                            return response_data
+                        else:
+                            if "data" in response_data:
+                                if response_data["data"]["status"] == "successful":
+                                    return {
+                                        "status": response_data["status"],
+                                        "data": {
+                                            "tx_ref": response_data["data"]["tx_ref"],
+                                            "flw_ref": response_data["data"]["flw_ref"],
+                                            "amount": response_data["data"]["amount"],
+                                            "currency": response_data["data"]["currency"],
+                                            "status": response_data["data"]["status"],
+                                            "payment_type": response_data["data"]["payment_type"],
+                                            "processor_response": response_data["data"]["processor_response"],
+                                            "created_at": response_data["data"]["customer"]["created_at"],
+                                            "name": response_data["data"]["customer"]["name"],
+                                            "email": response_data["data"]["customer"]["email"]}
+                                    }
+            except:
+                print("error in _charge_card")
+                raise
+
+        return None

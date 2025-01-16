@@ -29,7 +29,10 @@ class CreateTourPackage(BaseModel):
     start_date: date
     end_date: date
 
-    user_id: str
+    name: str
+    email: str
+    contact: Union[str, None] = None
+    address: Union[str, None] = None
     # user: UserSchema
 
     region_id: str

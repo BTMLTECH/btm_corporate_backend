@@ -30,5 +30,6 @@ class AccommodationService(BaseService):
         """Get list of accommodations"""
         try:
             return await self.accommodation_repository.get_all()
-        except:
+        except Exception as e:
+            print(e)
             raise GeneralError(detail="An unknown error has occured!")
