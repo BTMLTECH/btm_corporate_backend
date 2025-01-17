@@ -4,6 +4,7 @@
 """Auth endpoint"""
 
 
+import os
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, Request, responses
 from app.core.dependencies import get_current_user
@@ -28,6 +29,7 @@ router = APIRouter(
 async def sign_in(user_info: UserLogin, service: AuthService =
                   Depends(Provide[Container.auth_service])):
 
+    print(os.environ.get('RUN_MODE', 'NONE'))
     user = await service.sign_in(user_info)
 
     return user

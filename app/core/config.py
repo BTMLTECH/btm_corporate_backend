@@ -11,7 +11,7 @@ from pydantic_settings import BaseSettings
 
 load_dotenv()
 
-ENV: str = ""
+ENV: str = "dev"
 
 
 class Configs(BaseSettings):
@@ -57,6 +57,11 @@ class Configs(BaseSettings):
     GOOGLE_CLIENT: str = os.path.join("./", "client_secret.json")
     GOOGLE_SCOPES: List[str] = ['https://www.googleapis.com/auth/userinfo.profile',
                                 'https://www.googleapis.com/auth/userinfo.email', 'openid']
+    GOOGLE_LOCAL_LOGIN_REDIRECT_URI: str = os.getenv(
+        "GOOGLE_LOCAL_OAUTH_LOGIN_REDIRECT_URI")
+    GOOGLE_LOCAL_REGISTER_REDIRECT_URI: str = os.getenv(
+        "GOOGLE_LOCAL_OAUTH_REGISTER_REDIRECT_URI")
+    
     GOOGLE_LOGIN_REDIRECT_URI: str = os.getenv(
         "GOOGLE_OAUTH_LOGIN_REDIRECT_URI")
     GOOGLE_REGISTER_REDIRECT_URI: str = os.getenv(
@@ -135,5 +140,5 @@ if ENV == "prod":
     pass
 elif ENV == "stage":
     pass
-elif ENV == "test":
+elif ENV == "dev":
     setting = TestConfigs()
