@@ -244,11 +244,12 @@ class AuthService(BaseService):
         # Verify state
         stored_state = await self.get_google_state(state)
 
-        print(stored_state, "jhg")
+        print(stored_state, "jhg", state)
 
         received_state = state
 
         if not stored_state or not received_state or stored_state.state != received_state:
+            print("no state", stored_state, received_state)
             await self.google_repository.delete_by_state(state)
             return AuthError(detail="Authentication failed. Please try again")
 
