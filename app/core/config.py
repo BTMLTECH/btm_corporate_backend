@@ -27,7 +27,7 @@ class Configs(BaseSettings):
     # }
 
     ENV_DATABASE_MAPPER: dict = {
-        "prod": os.getenv("DB"),
+        "production": os.getenv("DB"),
         # "stage": "btm_corp_ws_stage",
         "dev": os.getenv("DB"),
         # "test": "btm_corp_ws_test",
