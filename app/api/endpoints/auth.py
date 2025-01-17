@@ -28,8 +28,7 @@ router = APIRouter(
 @inject
 async def sign_in(user_info: UserLogin, service: AuthService =
                   Depends(Provide[Container.auth_service])):
-
-    print(os.environ.get('RUN_MODE', 'NONE'))
+    """Route to sign in"""
     user = await service.sign_in(user_info)
 
     return user
@@ -39,7 +38,7 @@ async def sign_in(user_info: UserLogin, service: AuthService =
 @inject
 async def sign_up(user_info: CreateUser, service: AuthService =
                   Depends(Provide[Container.auth_service])):
-
+    """Router to sign up"""
     user = await service.sign_up(user_info)
 
     return user
@@ -49,7 +48,7 @@ async def sign_up(user_info: CreateUser, service: AuthService =
 @inject
 async def google_login(request: Request, service: AuthService =
                        Depends(Provide[Container.auth_service])):
-    """"""
+    """Route to login using Google"""
     authorization_url, state = google_login_auth.get_google_auth_state()
 
     await service.store_google_state(state, "Login")
@@ -69,7 +68,7 @@ async def google_login_callback(request: Request, google_data: GoogleCallbackDat
 @inject
 async def google_signup(request: Request, service: AuthService =
                         Depends(Provide[Container.auth_service])):
-    """"""
+    """Route to sign up using Google"""
     authorization_url, state = google_register_auth.get_google_auth_state()
 
     await service.store_google_state(state, "Register")
@@ -88,7 +87,7 @@ async def google_register_callback(request: Request, google_data: GoogleCallback
 @router.post("/verify", summary="Verify user registration")
 @inject
 async def verify_sign_up(user_verification: VerifyUser, auth: AuthService = Depends(Provide[Container.auth_service])):
-    """"""
+    """Route to verify sign up"""
     verified = await auth.verify_user_sign_up(user_verification.session_id)
 
     if not verified:
@@ -99,7 +98,7 @@ async def verify_sign_up(user_verification: VerifyUser, auth: AuthService = Depe
 @router.post("/validate-session")
 @inject
 async def validate_session(service: UserService = Depends(Provide[Container.user_service]), current_user: User = Depends(get_current_user)):
-    """Update a user profile"""
+    """Route to validate user session"""
     if not current_user.is_active:
         raise AuthError(detail="Account is not active")
     return current_user
@@ -108,7 +107,7 @@ async def validate_session(service: UserService = Depends(Provide[Container.user
 @router.post("/logout")
 @inject
 async def logout(service: UserService = Depends(Provide[Container.user_service]), current_user: User = Depends(get_current_user)):
-    """Update a user profile"""
+    """Route to logout"""
     # user = service.
     return None
 

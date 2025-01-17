@@ -133,7 +133,6 @@ class Configs(BaseSettings):
 class TestConfigs(Configs):
     ENV: str = "test"
 
-
 configs = Configs()
 
 if ENV == "prod":
