@@ -101,3 +101,13 @@ async def validate_session(service: UserService = Depends(Provide[Container.user
     if not current_user.is_active:
         raise AuthError(detail="Account is not active")
     return current_user
+
+
+@router.post("/logout")
+@inject
+async def logout(service: UserService = Depends(Provide[Container.user_service]), current_user: User = Depends(get_current_user)):
+    """Update a user profile"""
+    # user = service.
+    return None
+
+
