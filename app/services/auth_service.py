@@ -401,6 +401,8 @@ class AuthService(BaseService):
 
         stored_state = await self.google_repository.create(google_state)
 
+        print("stored state", stored_state)
+
         return stored_state
 
     async def get_google_state(self, state: str):
