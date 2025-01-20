@@ -48,17 +48,18 @@ class PersonalPackagePayment(BaseModel, table=True):
 
     currency: str = Field(sa_column=Column("currency",
                                            String(255), default=None, nullable=False))
-    
+
     tour_package_id: UUID = Field(sa_column=Column(
         "tour_package_id", ForeignKey(column="user_tour_packages.id")))
 
     tour_package: "TourPackage" = Relationship(back_populates="payment")
 
-    __table_args__ = (
-    ForeignKeyConstraint(
-        ['tour_package_id'], 
-        ['user_tour_packages.id'], 
-        deferrable=True, 
-        initially='deferred'
-    ),
-)
+    # __table_args__ = (
+    #     ForeignKeyConstraint(
+    #         ['tour_package_id'],
+    #         ['user_tour_packages.id'],
+    #         name='fk_personal_package_payment_tour_package',  # Add a name
+    #         deferrable=True,
+    #         initially='deferred'
+    #     ),
+    # )

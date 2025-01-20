@@ -47,20 +47,21 @@ class TourPackage(BaseModel, table=True):
 
     user: User = Relationship(back_populates="tour_packages")
 
-    payment_id: Union[UUID, None] = Field(sa_column=Column(
-        "payment_id", ForeignKey(column="personal_package_payment.id"), default=None, nullable=True))
+    # payment_id: Union[UUID, None] = Field(sa_column=Column(
+    #     "payment_id", ForeignKey(column="personal_package_payment.id"), default=None, nullable=True))
 
     payment: "PersonalPackagePayment" = Relationship(
         back_populates="tour_package")
 
-    payment_status: Union[TourPackagePaymentStatusType, None] = Field(sa_column=Column("payment_status", Enum(TourPackagePaymentStatusType, name="tour_package_payment_status_type_enum"), default=TourPackagePaymentStatusType.PENDING, nullable=True))
+    payment_status: Union[TourPackagePaymentStatusType, None] = Field(sa_column=Column("payment_status", Enum(
+        TourPackagePaymentStatusType, name="tour_package_payment_status_type_enum"), default=TourPackagePaymentStatusType.PENDING, nullable=True))
 
     tx_ref: str = Field(sa_column=Column(
         "tx_ref", String(255), default=None, nullable=True))
-    
+
     payment_gateway: str = Field(sa_column=Column(
         "payment_gateway", String(255), default=None, nullable=True))
-    
+
     currency: str = Field(sa_column=Column(
         "currency", String(255), default=None, nullable=True))
 
@@ -93,11 +94,12 @@ class TourPackage(BaseModel, table=True):
     transportation: List["Transportation"] = Relationship(
         back_populates="tour_packages", link_model=TourPackageTransportationLink)
 
-    __table_args__ = (
-    ForeignKeyConstraint(
-        ['payment_id'], 
-        ['personal_package_payment.id'], 
-        deferrable=True, 
-        initially='deferred'
-    ),
-)
+#     __table_args__ = (
+#     ForeignKeyConstraint(
+#         ['payment_id'],
+#         ['personal_package_payment.id'],
+#         name='fk_tour_package_payment',
+#         deferrable=True,
+#         initially='deferred'
+#     ),
+# )
