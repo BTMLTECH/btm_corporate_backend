@@ -33,6 +33,7 @@ class TourPackageService(BaseService):
         schema.accommodation_id = validate_uuid(
             schema.accommodation_id, "Accommodation")
         schema.region_id = validate_uuid(schema.region_id, "Region")
+        schema.user_id = validate_uuid(schema.user_id, "User")
 
         # Validate that lists are not empty
         if not schema.activities:
@@ -67,7 +68,7 @@ class TourPackageService(BaseService):
             # Handle GeneralError from the repository
             raise GeneralError(detail=e.detail)
         except Exception as e:
-            print("eeee", e)
+            print("eror", e)
             # Handle any other unexpected errors
             raise GeneralError(detail=str(e))
         except:

@@ -27,12 +27,17 @@ class UserVerificationRepository(BaseRepository):
                 await self.db_adapter.rollback(session)
                 raise DuplicatedError(detail=str(e.orig))
             except Exception as e:
+                await self.db_adapter.rollback(session)
                 if "duplicate" in str(e).lower():
-                    error_msg = "An account with that email address exists!"
+                    error_msg = "You recently requested verification! Please wait 10 minutes."
                     raise DuplicatedError(detail=error_msg)
                 else:
                     print(f"Other integrity error: {str(e)}")
-                    raise DuplicatedError(detail=str(e))
+                    await self.db_adapter.rollback(session)
+                raise e
+            except:
+                await self.db_adapter.rollback(session)
+                raise
             else:
                 await self.db_adapter.commit(session)
 
@@ -71,4 +76,3 @@ class UserVerificationRepository(BaseRepository):
                 print("An error has occured", e)
                 await self.db_adapter.rollback(session)
                 raise e
-            

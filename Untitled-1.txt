@@ -9,6 +9,7 @@
     "email": "oluwatobilobagunloye@gmail.com",
     "contact": "9056347603",
     "region_id": "770cfc0b-15f1-4cad-b74a-a087ea89d216",
+    "user_id": "fb15de3b-7526-46a6-a96c-a96e87820548",
     "transportations": ["0d8b713c-0e3d-4fbd-907b-323a9e7bc4ae"],
     "tour_sites_region": ["1297afb5-18f8-444a-9bf8-511560f58c3a"]
   },
@@ -21,6 +22,7 @@
     "expiry_year": "32",
     "email": "oluwatobilobagunloye@gmail.com",
     "tour_package_id": "bf3f5ddc-c14b-48dc-a003-a4c34ee22bc8",
+    "user_id": "fb15de3b-7526-46a6-a96c-a96e87820548",
     "mode": "string",
     "fields": {}
   }

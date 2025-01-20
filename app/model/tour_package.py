@@ -6,7 +6,7 @@
 import enum
 from typing import List, Union
 from uuid import UUID
-from sqlalchemy import Boolean, Column, Date, DateTime, Enum, ForeignKey, Integer, String, func, text
+from sqlalchemy import Boolean, Column, Date, Enum, ForeignKey, ForeignKeyConstraint, Integer, String, func, text
 from sqlmodel import Field, Relationship
 from app.model.accommodation import Accommodation
 from app.model.base_model import BaseModel
@@ -17,7 +17,7 @@ from app.model.tour_package_activity import TourPackageActivityLink
 from app.model.tour_package_tour_sites_region import TourPackageTourSitesRegionLink
 from app.model.tour_package_transportation import TourPackageTransportationLink
 from app.model.user import User
-from datetime import datetime, date, timedelta
+from datetime import date
 from sqlalchemy.sql import func
 
 
@@ -42,24 +42,16 @@ class TourPackage(BaseModel, table=True):
 
     active: bool = Field(sa_column=Column("active", Boolean, default=False))
 
-    # user_id: UUID = Field(sa_column=Column(
-    #     "user_id", ForeignKey(column="users.id", ondelete="CASCADE")))
+    user_id: UUID = Field(sa_column=Column(
+        "user_id", ForeignKey(column="users.id", ondelete="CASCADE")))
 
-    # user: User = Relationship(back_populates="tour_packages")
+    user: User = Relationship(back_populates="tour_packages")
 
-    user_fullname: str = Field(sa_column=Column("user_fullname", String, nullable=False))
+    payment_id: Union[UUID, None] = Field(sa_column=Column(
+        "payment_id", ForeignKey(column="personal_package_payment.id"), default=None, nullable=True))
 
-    user_email: str = Field(sa_column=Column("user_email", String, nullable=False))
-
-    user_contact: Union[str, None] = Field(sa_column=Column("user_contact", String, nullable=True, default=None))
-
-    user_address: Union[str, None] = Field(sa_column=Column("user_address", String, nullable=True, default=None))
-
-    # payment_id: Union[UUID, None] = Field(sa_column=Column(
-    #     "payment_id", ForeignKey(column="personal_package_payment.id"), default=None, nullable=True))
-
-    # payment: "PersonalPackagePayment" = Relationship(
-    #     back_populates="tour_package")
+    payment: "PersonalPackagePayment" = Relationship(
+        back_populates="tour_package")
 
     payment_status: Union[TourPackagePaymentStatusType, None] = Field(sa_column=Column("payment_status", Enum(TourPackagePaymentStatusType, name="tour_package_payment_status_type_enum"), default=TourPackagePaymentStatusType.PENDING, nullable=True))
 
@@ -100,3 +92,12 @@ class TourPackage(BaseModel, table=True):
 
     transportation: List["Transportation"] = Relationship(
         back_populates="tour_packages", link_model=TourPackageTransportationLink)
+
+    __table_args__ = (
+    ForeignKeyConstraint(
+        ['payment_id'], 
+        ['personal_package_payment.id'], 
+        deferrable=True, 
+        initially='deferred'
+    ),
+)

@@ -36,27 +36,26 @@ class TourPackageRepository(BaseRepository):
         """Create a tour package"""
         async with self.db_adapter.session() as session, session.begin():
             try:
-                # user_query = select(User).where(
-                #     User.id == schema.user_id)
+                user_query = select(User).where(
+                    User.id == schema.user_id)
 
-                # user_result = (await session.execute(user_query)).scalar_one_or_none()
+                user_result = (await session.execute(user_query)).scalar_one_or_none()
 
-                # if not user_result:
-                #     raise NotFoundError(detail="User not found or deleted")
+                if not user_result:
+                    raise NotFoundError(detail="User not found or deleted")
+
                 schema_dict = {
                     "active": False,
-                    "user_fullname": schema.name,
-                    "user_email": schema.email,
-                    "user_contact": schema.contact,
-                    "user_address": schema.address,
+                    "user_id": schema.user_id,
                     "accommodation_id": schema.accommodation_id,
                     "no_of_people_attending": schema.no_of_people_attending,
                     "start_date": schema.start_date,
                     "end_date": schema.end_date,
                 }
 
-
                 query = self.model(**schema_dict)
+
+                query.user = user_result
 
                 accommodation_query = select(Accommodation).where(
                     Accommodation.id == schema.accommodation_id)
@@ -66,7 +65,7 @@ class TourPackageRepository(BaseRepository):
                 if not accommodation:
                     raise NotFoundError(
                         detail=f"Accommodation not found or deleted: {', '.join(map(str, schema.accommodation_id))}")
-                
+
                 query.accommodation = accommodation
 
                 tour_sites_tour_package_ids = set(schema.tour_sites_region)
@@ -79,7 +78,8 @@ class TourPackageRepository(BaseRepository):
                 existing_tour_sites_tour_package_ids = set(
                     str(tour_sites.id) for tour_sites in tour_sites_region_result)
 
-                missing_tour_sites_ids = tour_sites_tour_package_ids - existing_tour_sites_tour_package_ids
+                missing_tour_sites_ids = tour_sites_tour_package_ids - \
+                    existing_tour_sites_tour_package_ids
 
                 if missing_tour_sites_ids:
                     raise NotFoundError(
@@ -90,9 +90,12 @@ class TourPackageRepository(BaseRepository):
 
                 # Validate Activities
                 activities_ids = set(schema.activities)
+
                 activities_query = select(Activity).where(
                     Activity.id.in_(activities_ids))
+
                 activities_result = (await session.execute(activities_query)).scalars().all()
+
                 existing_activities_ids = set(
                     str(activity.id) for activity in activities_result)
 
@@ -108,7 +111,7 @@ class TourPackageRepository(BaseRepository):
                 transportations_ids = set(schema.transportations)
                 transportations_query = select(Transportation).where(
                     Transportation.id.in_(transportations_ids))
-                
+
                 transportation_result = (await session.execute(transportations_query)).scalars().all()
 
                 existing_transportations_ids = set(
@@ -132,6 +135,7 @@ class TourPackageRepository(BaseRepository):
                     selectinload(self.model.tour_sites_region),
                     selectinload(self.model.transportation),
                     selectinload(self.model.region),
+                    selectinload(self.model.user)
                 ).where(self.model.id == query.id)
 
                 query = (await session.execute(query)).scalar_one()
@@ -158,7 +162,8 @@ class TourPackageRepository(BaseRepository):
         tour_package: bool = False
         async with self.db_adapter.session() as session, session.begin():
             try:
-                query = delete(self.model).where(self.model.id == tour_package_id)
+                query = delete(self.model).where(
+                    self.model.id == tour_package_id)
 
                 result = (await session.execute(query))
 

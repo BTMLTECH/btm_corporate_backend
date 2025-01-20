@@ -55,6 +55,9 @@ class PaymentRepository(BaseRepository):
             except Exception as e:
                 await session.rollback()
                 raise GeneralError(detail=str(e))
+            except:
+                await session.rollback()
+                raise
             else:
                 await self.db_adapter.commit(session)
 

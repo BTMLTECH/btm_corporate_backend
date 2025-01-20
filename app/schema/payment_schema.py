@@ -34,7 +34,7 @@ class PaymentRequest(BaseModel):
     expiry_month: Union[str, int]
     expiry_year: Union[str, int]
     email: str
-    # user_id: Union[str, None] = None
+    user_id: Union[str, None] = None
     # tx_ref: str
     tour_package_id: str
     # redirect_url: Union[str, None] = Field(default=None)
@@ -49,7 +49,7 @@ class PackagePaymentSchema(BaseModel):
     payment_gateway: str = "Flutterwave"
     amount: Union[str, int] = 1
     currency: str = "USD"
-    tour_package_id: UUID
+    tour_package_id: str
 
 class VerifyPayment(BaseModel):
     tx_ref: str

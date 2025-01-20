@@ -39,20 +39,23 @@ class PaymentGatewayService(BaseService):
                                 amount = req["data"]["amount"]
                                 currency = req["data"]["currency"]
 
-                                package_payment = await self.repository.create(PackagePaymentSchema(
-                                    amount=amount, currency=currency, user_id=payment_request.user_id, transaction_ref=tx_ref, payment_gateway="Flutterwave", payment_ref=flw_ref, tour_package_id=payment_request.tour_package_id))
+                                try:
+                                    package_payment = await self.repository.create(PackagePaymentSchema(
+                                        amount=amount, currency=currency, user_id=payment_request.user_id, transaction_ref=tx_ref, payment_gateway="Flutterwave", payment_ref=flw_ref, tour_package_id=payment_request.tour_package_id))
+                                except:
+                                    raise
 
                                 return package_payment
                 else:
-                    raise GeneralError(detail=str(req["message"]))
+                    raise GeneralError(detail=req["message"])
             return req
         except ClientConnectorDNSError as e:
             print("e", e)
             raise ServerError(
                 detail="Client is not connected to the internet or connection failed")
-        except Exception as e:
-            print("errr", e)
-            raise GeneralError(detail=str(e))
+        except:
+            print("okurr")
+            raise
 
     async def verify_payment(self, tx_ref: str):
         """whoo"""

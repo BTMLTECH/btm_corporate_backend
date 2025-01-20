@@ -33,6 +33,7 @@ class CreateTourPackage(BaseModel):
     email: str
     contact: Union[str, None] = None
     address: Union[str, None] = None
+    user_id: str
     # user: UserSchema
 
     region_id: str

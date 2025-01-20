@@ -52,7 +52,7 @@ class AuthService(BaseService):
         if (user.password and sign_in_info.password) and\
                 not verify_password(sign_in_info.password, user.password):
             raise AuthError(detail="Incorrect email or password")
-        
+
         if not user.is_active:
             raise AuthError(detail="Account is not active")
 
@@ -145,12 +145,12 @@ class AuthService(BaseService):
 
             session_id = uuid4()
 
-            send_email = await email_service.send_verification_email(session_id, new_user.email, getenv("API_URI", "https://btmghana.net") + "/verify")
-
             user_verification = UserVerification(
-                session_id=session_id, email=send_email.get("email"), token=access_token)
+                session_id=session_id, email=user.email, token=access_token)
 
             await self.user_verification_repository.create(user_verification)
+
+            await email_service.send_verification_email(session_id, new_user.email, getenv("API_URI", "https://btmghana.net") + "/verify")
         except Exception as e:
             raise e
 
@@ -158,7 +158,7 @@ class AuthService(BaseService):
         return UserSchema(**new_user.model_dump(exclude_none=True))
 
     async def google_sign_up(self, user_info: GoogleSignIn):
-        """Google Login"""
+        """Google Signup"""
 
         user_exists: User = await self.user_repository.get_by_email(user_info.email)
 
@@ -273,7 +273,7 @@ class AuthService(BaseService):
         try:
             user_info: Optional[Mapping[str, Any]] = google_login_auth.verify_google_token(
                 id_token=credentials._id_token)
-            
+
             existing_user: Union[User, None]
             if user_info is not None:
                 # check if user already exists
@@ -404,8 +404,6 @@ class AuthService(BaseService):
 
         stored_state = await self.google_repository.create(google_state)
 
-        print("stored state", stored_state)
-
         return stored_state
 
     async def get_google_state(self, state: str):
@@ -413,3 +411,41 @@ class AuthService(BaseService):
         google_state = await self.google_repository.get_by_state(state)
 
         return google_state
+
+    async def resend_verification(self, user: UserSchema):
+        """This service resends verification link to a user"""
+        try:
+            payload = Payload(
+                id=str(user.id),
+                email=user.email,
+                name=user.name,
+                is_admin=user.is_admin,
+            )
+
+            token_lifespan = timedelta(
+                minutes=15)
+
+            access_token, _ = create_access_token(
+                payload.model_dump(), token_lifespan)
+
+            email_service = EmailService(configs.SMTP_SERVER, configs.EMAIL_PORT,
+                                         configs.EMAIL_USERNAME, configs.EMAIL_PASSWORD, configs.SENDER_EMAIL)
+
+            session_id = uuid4()
+
+            user_verification = UserVerification(
+                session_id=session_id, email=user.email, token=access_token)
+
+            await self.user_verification_repository.create(user_verification)
+
+            await email_service.send_verification_email(session_id, user.email, getenv("API_URI", "https://btmghana.net") + "/verify")
+
+        except Exception as e:
+            if "recently" in str(e):
+                raise GeneralError(detail=str(e))
+            raise GeneralError(detail=str(e))
+
+        return {
+            "success": True,
+            "message": "Verification link has been sent"
+        }

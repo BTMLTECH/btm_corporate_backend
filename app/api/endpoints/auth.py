@@ -95,6 +95,7 @@ async def verify_sign_up(user_verification: VerifyUser, auth: AuthService = Depe
 
     return {"verified": True}
 
+
 @router.post("/validate-session")
 @inject
 async def validate_session(service: UserService = Depends(Provide[Container.user_service]), current_user: User = Depends(get_current_user)):
@@ -104,11 +105,16 @@ async def validate_session(service: UserService = Depends(Provide[Container.user
     return current_user
 
 
+@router.post("/resend-verification")
+@inject
+async def resend_verification(service: AuthService = Depends(Provide[Container.auth_service]), current_user: User = Depends(get_current_user)):
+    """Route to re-send verification link"""
+    return await service.resend_verification(current_user)
+
+
 @router.post("/logout")
 @inject
 async def logout(service: UserService = Depends(Provide[Container.user_service]), current_user: User = Depends(get_current_user)):
     """Route to logout"""
     # user = service.
     return None
-
-

@@ -4,7 +4,10 @@
 """Tour Package Payment Services"""
 
 
+import json
 from typing import Any, Dict
+
+from fastapi.encoders import jsonable_encoder
 from app.core.exceptions import GeneralError
 from app.model.personal_package_payment import PersonalPackagePayment
 from app.model.tour_package import TourPackage
@@ -31,7 +34,8 @@ class TourPackagePaymentService:
             new_tour_package = await self.tour_package_service.add(tour_package)
         except Exception as e:
             # delete tour package
-            return GeneralError(detail="Tour failed")
+            return GeneralError(detail=str(e))
+        
         # Step 2: Process payment
         try:
             payment_request.tour_package_id = str(new_tour_package.id)
@@ -39,10 +43,20 @@ class TourPackagePaymentService:
             payment_result = await self.payment_service.process_payment(payment_request)
         except Exception as e:
             # delete tour package
-            await self.tour_package_service.delete_by_id(str(new_tour_package.id))
-            return e
-            return GeneralError(detail="Payment failed")
+            err: Dict[str, Any] = jsonable_encoder(e)
+            print(e)
 
+            try:
+                if err["detail"]["success"] is not None:
+                    raise GeneralError(detail=err['detail'])
+            except KeyError:
+                # await self.tour_package_service.delete_by_id(str(new_tour_package.id))
+                raise GeneralError(detail="Key does not exist")
+
+            # await self.tour_package_service.delete_by_id(str(new_tour_package.id))
+
+
+            raise GeneralError(detail=e.detail)
 
         return payment_result
 

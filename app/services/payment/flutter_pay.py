@@ -83,6 +83,11 @@ class FlutterPaymentGateway(BasePaymentGateway):
                                             if "authorization" in response_data["meta"]:
                                                 if response_data["meta"]["authorization"]["mode"] == "otp":
                                                     # return response_data
+                                                    raise GeneralError(detail={
+                                                        "tx_ref": response_data["data"]["tx_ref"],
+                                                        "flw_ref": response_data["data"]["flw_ref"],
+                                                        **response_data["meta"]
+                                                    })
                                                     return {
                                                         "tx_ref": response_data["data"]["tx_ref"],
                                                         "flw_ref": response_data["data"]["flw_ref"],
@@ -116,7 +121,11 @@ class FlutterPaymentGateway(BasePaymentGateway):
 
                         if response_data:
                             if "status" in response_data and response_data["status"] != "success":
-                                return response_data
+                                print("hallla", response_data)
+                                raise GeneralError(detail={
+                                    "success": False,
+                                    **response_data
+                                })
                             else:
                                 if "data" in response_data:
                                     if response_data["data"]["status"] == "successful":
@@ -141,12 +150,24 @@ class FlutterPaymentGateway(BasePaymentGateway):
                                                     # return response_data
                                                     print(
                                                         response_data["data"])
+                                                    raise GeneralError(detail={
+                                                        "success": False,
+                                                        "tx_ref": response_data["data"]["tx_ref"],
+                                                        "flw_ref": response_data["data"]["flw_ref"],
+                                                        "message": response_data["data"]["processor_response"],
+                                                        **response_data["meta"]
+                                                    })
                                                     return {
                                                         "tx_ref": response_data["data"]["tx_ref"],
                                                         "flw_ref": response_data["data"]["flw_ref"],
                                                         "message": response_data["data"]["processor_response"],
                                                         **response_data["meta"]
                                                     }
+                                            raise GeneralError(detail={
+                                                "success": False,
+                                                "message": response_data["data"]["processor_response"],
+                                                **response_data["meta"]
+                                            })
                                             return {
                                                 "message": response_data["data"]["processor_response"],
                                                 **response_data["meta"]
@@ -155,6 +176,13 @@ class FlutterPaymentGateway(BasePaymentGateway):
                                     if "authorization" in response_data["meta"]:
                                         if response_data["meta"]["authorization"]["mode"] == "otp":
                                             # return response_data
+                                            raise GeneralError(detail={
+                                                "success": False,
+                                                "tx_ref": response_data["data"]["tx_ref"],
+                                                "flw_ref": response_data["data"]["flw_ref"],
+                                                "message": response_data["data"]["processor_response"],
+                                                **response_data["meta"]
+                                            })
                                             return {
                                                 "tx_ref": response_data["data"]["tx_ref"],
                                                 "flw_ref": response_data["data"]["flw_ref"],
@@ -162,9 +190,18 @@ class FlutterPaymentGateway(BasePaymentGateway):
                                                 **response_data["meta"]
                                             }
                                         elif response_data["meta"]["authorization"]["mode"] == "avs_noauth":
+                                            raise GeneralError(detail={
+                                                "success": False,
+                                                **response_data["meta"]
+                                            })
                                             return {
                                                 **response_data["meta"]
                                             }
+                                        raise GeneralError(detail={
+                                            "success": False,
+                                            "message": response_data["data"]["processor_response"],
+                                            **response_data["meta"]
+                                        })
                                         return {
                                             "message": response_data["data"]["processor_response"],
                                             **response_data["meta"]
