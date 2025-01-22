@@ -114,10 +114,10 @@ class Configs(BaseSettings):
 
     # REDIS
     REDIS_URL: str = os.getenv(
-        "REDIS_HOST", "rediss://red-ct8rpqu8ii6s73cff68g:8FZX4gaRKDVAUq3C0IKMGNE7nVIeQTPF@oregon-redis.render.com:6379")
-    REDIS_HOST: str = os.getenv("REDIS_HOST")
-    REDIS_PORT: str = os.getenv("REDIS_PORT")
-    REDIS_DB: str = os.getenv("REDIS_DB")
+        "REDIS_HOST", None)
+    REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT: str = os.getenv("REDIS_PORT", 6379)
+    REDIS_DB: str = os.getenv("REDIS_DB", 0)
     # REDIS_USERNAME: str = os.getenv("REDIS_USERNAME")
     REDIS_PASSWORD: str = os.getenv("REDIS_PASSWORD")
 

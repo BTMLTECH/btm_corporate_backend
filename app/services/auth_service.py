@@ -5,6 +5,7 @@
 
 
 from datetime import timedelta, timezone
+import json
 from typing import Any, Mapping, Optional, Union
 from uuid import uuid4
 
@@ -20,23 +21,24 @@ from app.repository.google_repository import GoogleRepository
 from app.repository.user_repository import UserRepository
 from app.repository.user_verification_repository import UserVerificationRepository
 from app.schema.auth_schema import CreateUser, GoogleSignIn, Payload, SignIn, UserLogin
-from app.schema.google_schema import GoogleSchema
-from app.schema.user_schema import UserSchema, UserVerificationSchema
+from app.schema.user_schema import UserSchema
 from smtplib import SMTP
 from email.mime.text import MIMEText
 from os import getenv
-
 from app.services.base_service import BaseService
+from app.services.cache.redis_service import RedisService
 from app.services.mail_service import EmailService
 from app.util.google import google_login_auth, google_register_auth
+from datetime import datetime
 
 
 class AuthService(BaseService):
-    def __init__(self, auth_repository: AuthRepository, user_verification_repository: UserVerificationRepository, user_repository: UserRepository, google_repository: GoogleRepository):
+    def __init__(self, auth_repository: AuthRepository, user_verification_repository: UserVerificationRepository, user_repository: UserRepository, google_repository: GoogleRepository, redis_service: RedisService):
         self.auth_repository = auth_repository
         self.user_verification_repository = user_verification_repository
         self.user_repository = user_repository
         self.google_repository = google_repository
+        self.redis_service = redis_service
 
         super().__init__(auth_repository)
 
@@ -60,8 +62,8 @@ class AuthService(BaseService):
 
         payload = Payload(
             id=str(user.id),
-            email=user.email,
             name=user.name,
+            email=user.email,
             is_admin=user.is_admin,
         )
 
@@ -70,6 +72,17 @@ class AuthService(BaseService):
 
         access_token, expiration_datetime = create_access_token(
             payload.model_dump(), token_lifespan)
+        
+        await self.user_repository.update_by_id(user.id, {"last_login_at": datetime.now()})
+
+        self.redis_service.cache_data(
+            str(user.id), {"user": {
+                "id": str(user.id),
+                "created_at": str(user.created_at),
+                "updated_at": str(user.updated_at),
+                "last_login_at": str(user.last_login_at),
+                **user.model_dump(exclude=["id", "created_at", "updated_at", "deleted_at", "last_login_at"])
+            }, "access_token": access_token})
 
         sign_in_result = {
             "access_token": access_token,
@@ -97,6 +110,9 @@ class AuthService(BaseService):
 
         access_token, expiration_datetime = create_access_token(
             payload.model_dump(), token_lifespan)
+
+        self.redis_service.cache_data(
+            user.id, {**user, "access_token": access_token})
 
         sign_in_result = {
             "access_token": access_token,
@@ -188,7 +204,13 @@ class AuthService(BaseService):
                 "user": new_user,
             }
 
+            self.redis_service.cache_data(
+                user.id, {**new_user, "access_token": access_token})
+
             return google_signup_result
+
+        self.redis_service.cache_data(
+            user.id, {**new_user, "access_token": access_token})
 
         return self.sign_in(sign_in_info=SignIn(email=user_info.email))
 

@@ -4,7 +4,8 @@
 """User endpoint"""
 
 
-from typing import Any, List, Mapping, Optional, Union
+from typing import Any, Dict, List, Mapping, Optional, Union
+from uuid import UUID
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, Request, responses, status
 from fastapi.encoders import jsonable_encoder
@@ -29,21 +30,26 @@ router = APIRouter(
 )
 
 
-@router.get("/{user_id}", response_model=Union[User, None])
+@router.get("/{user_id}/profile", response_model=UserSchema)
 @inject
-async def get_user_profile(user_id: str,
-                           service: UserService = Depends(
-                               Provide[Container.user_service]),
-                           current_user: User = Depends(get_current_user)):
-    """Get a user profile"""
+async def get_user_profile_by_id(user_id: str,
+                                 service: UserService = Depends(
+                                     Provide[Container.user_service]),
+                                 current_user: User = Depends(get_current_user)):
+    """Get a user profile by ID"""
     user = await service.get_by_id(user_id)
 
     if user is None:
-        return None
-
-    delattr(user, "password")
+        return GeneralError(detail="User not found")
 
     return user
+
+
+@router.get("/me", response_model=UserSchema)
+@inject
+async def get_current_user_profile(current_user: User = Depends(get_current_user)):
+    """Get current user profile"""
+    return current_user
 
 
 @router.get("/all", response_model=List[User])
@@ -62,4 +68,3 @@ async def update(update_user: UpdateUser, service: UserService = Depends(Provide
     user = await service.update_by_id(current_user.id, update_user.model_dump(exclude_none=True))
 
     return user
-

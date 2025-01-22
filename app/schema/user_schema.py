@@ -34,7 +34,7 @@ class UserCredentials(BaseModel):
 class UserSchema(BaseUser):
     name: str
     email: EmailStr
-    password: Union[str, None] = None
+    # password: Union[str, None] = None
     phone: Union[str, None] = None
     provider: Literal["google", "email"]
     email_verified: bool

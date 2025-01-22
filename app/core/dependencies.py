@@ -4,41 +4,64 @@
 """Dependencies"""
 
 
-from typing import Optional
+import json
+from json.decoder import JSONDecodeError
 from dependency_injector.wiring import Provide, inject
-from fastapi import Depends, Request
+from fastapi import Depends
 from jose import jwt, JWTError
 from pydantic import ValidationError
 
 from app.core.config import configs
 from app.core.container import Container
-from app.core.database import Database
-from app.core.exceptions import AuthError
+from app.core.exceptions import AuthError, GeneralError
 from app.core.security import ALGORITHM, JWTBearer
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.model.user import User
 from app.schema.auth_schema import Payload
+from app.services.cache.redis_service import RedisService
 from app.services.user_service import UserService
-# from app.model.user import User
-# from app.schema.auth_schema import Payload
-# from app.services.user_service import UserService
 
 
 @inject
 async def get_current_user(
     token: str = Depends(JWTBearer()),
     service: UserService = Depends(Provide[Container.user_service]),
+    redis_service: RedisService = Depends(Provide[Container.redis_service])
 ) -> User:
     try:
         payload = jwt.decode(token, configs.SECRET_KEY, algorithms=ALGORITHM)
+
         token_data = Payload(**payload)
     except (JWTError, ValidationError):
         raise AuthError(detail="Could not validate credentials")
-    current_user: User = await service.get_by_id(token_data.id)
+
+    current_user = redis_service.retrieve_data(token_data.id)
+
     if not current_user:
         raise AuthError(detail="User not found")
-    return current_user
+    
+    # current_user = await service.get_by_id(token_data.id)
+
+    try:
+        current_user = json.loads(current_user)
+
+        if "user" not in current_user:
+            raise AuthError("User not found")
+
+        if not current_user:
+            raise AuthError(detail="User not found")
+
+        return current_user["user"]
+    except JSONDecodeError as e:
+        raise GeneralError(
+            detail="An unknown error has occured during serialization.")
+
+    if "user" not in current_user:
+        raise AuthError("User not found")
+
+    if not current_user:
+        raise AuthError(detail="User not found")
+
+    return current_user["user"]
 
 
 async def is_user_admin(current_user: User = Depends(get_current_user)):

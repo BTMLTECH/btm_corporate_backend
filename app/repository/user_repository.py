@@ -97,7 +97,7 @@ class UserRepository(BaseRepository):
                 query = select(self.model).where(self.model.id == id)
 
                 query = (await session.execute(
-                    query)).scalar()
+                    query)).scalar_one_or_none()
 
                 return query
             except Exception as e:

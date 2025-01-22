@@ -5,6 +5,7 @@
 
 from dependency_injector import containers, providers
 from app.adapter.flutter_payment_adapter import FlutterPaymentAdapter
+from app.adapter.redis_adapter import RedisClient
 from app.adapter.sqlalchemy_adapter import SQLAlchemyAdapter
 from app.core.config import configs
 from app.core.database import Database
@@ -25,6 +26,7 @@ from app.services.accommodation_service import AccommodationService
 from app.services.activity_service import ActivityService
 from app.services.auth_service import AuthService
 from app.services.base_payment_service import PaymentService
+from app.services.cache.redis_service import RedisService
 from app.services.payment.flutter_pay import FlutterPaymentGateway
 from app.services.payment_service import PaymentGatewayService
 from app.services.region_service import RegionService
@@ -61,6 +63,13 @@ class Container(containers.DeclarativeContainer):
     )
 
     flutter_payment_gateway = providers.Singleton(FlutterPaymentGateway)
+
+    redis_client = providers.Singleton(
+        RedisClient,
+        host="localhost" if configs.ENV == "dev" else configs.REDIS_HOST,
+        port=6379,
+        db=0
+    )
 
     # Repositories
     user_repository = providers.Factory(
@@ -104,13 +113,16 @@ class Container(containers.DeclarativeContainer):
 
     activity_service = providers.Factory(
         ActivityService, activity_repository=activity_repository)
+    
+    redis_service = providers.Factory(RedisService, redis_client=redis_client)
 
     auth_service = providers.Factory(
         AuthService,
         auth_repository=auth_repository,
         user_verification_repository=user_verification_repository,
         user_repository=user_repository,
-        google_repository=google_repository
+        google_repository=google_repository,
+        redis_service=redis_service
     )
 
     payment_gateway_service = providers.Factory(

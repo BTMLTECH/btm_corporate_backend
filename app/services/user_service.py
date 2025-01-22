@@ -13,6 +13,7 @@ from app.model.user import User
 from app.repository.user_repository import UserRepository
 from app.schema.user_schema import UserModel
 from app.services.base_service import BaseService
+from app.services.cache.redis_service import redis_service
 
 
 class UserService(BaseService):
