@@ -7,11 +7,11 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple
 from fastapi import Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, APIKeyCookie
 from jose import jwt
 from passlib.context import CryptContext
 from app.core.config import configs
-from app.core.exceptions import AuthError
+from app.core.exceptions import AuthError, AuthForbiddenError
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -85,7 +85,7 @@ class JWTBearer(HTTPBearer):
                 raise AuthError(detail="Invalid authentication scheme.")
 
             if not self.verify_jwt(credentials.credentials):
-                raise AuthError(detail="Invalid or expired token.")
+                raise AuthError(detail="Invalid or expired token.")            
 
             return credentials.credentials
         else:
@@ -101,5 +101,24 @@ class JWTBearer(HTTPBearer):
 
         if payload:
             is_token_valid = True
-            
+
         return is_token_valid
+
+
+class CookieBearer(HTTPBearer):
+    def __init__(self, auto_error: bool = True):
+        super(CookieBearer, self).__init__(auto_error=auto_error)
+
+    async def __call__(self, request: Request):
+        csrf_cookie = request.cookies.get("csrf_token")
+
+        if not csrf_cookie:
+            if self.auto_error:
+                raise AuthForbiddenError(
+                    detail="Missing cookie",
+                )
+            raise AuthForbiddenError(
+                detail="Missing cookie",
+            )
+
+        return csrf_cookie

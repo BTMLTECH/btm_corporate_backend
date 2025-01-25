@@ -6,11 +6,13 @@
 
 import os
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends, Request, responses
+from fastapi import APIRouter, Depends, Request, Response, responses
+from fastapi.encoders import jsonable_encoder
 from app.core.dependencies import get_current_user
 from app.core.exceptions import AuthError
 from app.model.user import User
 from app.schema.user_schema import UserSchema
+from app.services.cache.redis_service import RedisService
 from app.services.user_service import UserService
 from app.core.container import Container
 from app.schema.auth_schema import CreateUser, GoogleCallbackData, UserLogin, VerifyUser
@@ -31,7 +33,33 @@ async def sign_in(user_info: UserLogin, service: AuthService =
     """Route to sign in"""
     user = await service.sign_in(user_info)
 
-    return user
+    response = responses.JSONResponse(
+        content={"message": "Login successful", "user": jsonable_encoder(user.get("user")), "csrf_token": user.get("csrf_token"), "access_token": user.get("access_token")})
+
+    response.set_cookie(
+        path="/",
+        key="access_token",
+        value=user.get("access_token"),
+        httponly=True,  # Ensure HTTPS is used in production
+        secure=True,
+        samesite="none",  # Adjust based on your frontend/backend architecture
+        max_age=2*60*60,
+        # domain="127.0.0.1"
+    )
+
+    # Set non-HTTP-only cookie for CSRF token
+    response.set_cookie(
+        path="/",
+        key="csrf_token",
+        value=user.get("csrf_token"),
+        httponly=True,  # Accessible to JavaScript
+        secure=True,  # Ensure HTTPS in production
+        samesite="lax",
+        max_age=2*60*60,
+        # domain="127.0.0.1"
+    )
+
+    return response
 
 
 @router.post("/sign-up", response_model=UserSchema)
@@ -96,7 +124,7 @@ async def verify_sign_up(user_verification: VerifyUser, auth: AuthService = Depe
     return {"verified": True}
 
 
-@router.post("/validate-session")
+@router.get("/validate-session")
 @inject
 async def validate_session(service: UserService = Depends(Provide[Container.user_service]), current_user: User = Depends(get_current_user)):
     """Route to validate user session"""
@@ -114,7 +142,13 @@ async def resend_verification(service: AuthService = Depends(Provide[Container.a
 
 @router.post("/logout")
 @inject
-async def logout(service: UserService = Depends(Provide[Container.user_service]), current_user: User = Depends(get_current_user)):
+async def logout(response: Response, redis_service: RedisService = Depends(Provide[Container.redis_service]), current_user: User = Depends(get_current_user)):
     """Route to logout"""
-    # user = service.
-    return None
+    redis_service.delete_data(str(current_user.id))
+    
+    response.delete_cookie("access_token")
+    response.delete_cookie("csrf_token")
+
+    return {
+        "message": "Logout successful"
+    }

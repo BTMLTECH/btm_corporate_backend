@@ -6,6 +6,7 @@
 
 from datetime import timedelta, timezone
 import json
+import secrets
 from typing import Any, Mapping, Optional, Union
 from uuid import uuid4
 
@@ -72,21 +73,27 @@ class AuthService(BaseService):
 
         access_token, expiration_datetime = create_access_token(
             payload.model_dump(), token_lifespan)
-        
+
         await self.user_repository.update_by_id(user.id, {"last_login_at": datetime.now()})
 
+        csrf_token = secrets.token_hex(32)
+
+        user_data = {
+            "id": str(user.id),
+            "created_at": str(user.created_at),
+            "updated_at": str(user.updated_at),
+            "last_login_at": str(user.last_login_at),
+            **user.model_dump(exclude=["id", "created_at", "updated_at", "deleted_at", "last_login_at"]),
+            "csrf_token": csrf_token,
+            "access_token": access_token,
+        }
+
         self.redis_service.cache_data(
-            str(user.id), {"user": {
-                "id": str(user.id),
-                "created_at": str(user.created_at),
-                "updated_at": str(user.updated_at),
-                "last_login_at": str(user.last_login_at),
-                **user.model_dump(exclude=["id", "created_at", "updated_at", "deleted_at", "last_login_at"])
-            }, "access_token": access_token})
+            f"user:{user.id}", user_data)
 
         sign_in_result = {
             "access_token": access_token,
-            "expiration": expiration_datetime,
+            "csrf_token": csrf_token,
             "user": user,
         }
 
@@ -111,12 +118,24 @@ class AuthService(BaseService):
         access_token, expiration_datetime = create_access_token(
             payload.model_dump(), token_lifespan)
 
+        csrf_token = secrets.token_hex(32)
+
+        user_data = {
+            "id": str(user.id),
+            "created_at": str(user.created_at),
+            "updated_at": str(user.updated_at),
+            "last_login_at": str(user.last_login_at),
+            **user.model_dump(exclude=["id", "created_at", "updated_at", "deleted_at", "last_login_at"]),
+            "csrf_token": csrf_token,
+            "access_token": access_token,
+        }
+
         self.redis_service.cache_data(
-            user.id, {**user, "access_token": access_token})
+            f"user:{user.id}", user_data)
 
         sign_in_result = {
             "access_token": access_token,
-            "expiration": expiration_datetime,
+            "csrf_token": csrf_token,
             "user": user,
         }
 
@@ -271,7 +290,6 @@ class AuthService(BaseService):
         received_state = state
 
         if not stored_state or not received_state or stored_state.state != received_state:
-            print("no state", stored_state, received_state)
             await self.google_repository.delete_by_state(state)
             return AuthError(detail="Authentication failed. Please try again")
 

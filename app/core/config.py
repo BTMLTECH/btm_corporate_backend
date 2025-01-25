@@ -61,14 +61,15 @@ class Configs(BaseSettings):
         "GOOGLE_LOCAL_OAUTH_LOGIN_REDIRECT_URI")
     GOOGLE_LOCAL_REGISTER_REDIRECT_URI: str = os.getenv(
         "GOOGLE_LOCAL_OAUTH_REGISTER_REDIRECT_URI")
-    
+
     GOOGLE_LOGIN_REDIRECT_URI: str = os.getenv(
         "GOOGLE_OAUTH_LOGIN_REDIRECT_URI")
     GOOGLE_REGISTER_REDIRECT_URI: str = os.getenv(
         "GOOGLE_OAUTH_REGISTER_REDIRECT_URI")
 
     # CORS
-    BACKEND_CORS_ORIGINS: List[str] = ["*"]
+    BACKEND_CORS_ORIGINS: List[str] = ["http://localhost", "https://127.0.0.1:5173",
+                                       "http://127.0.0.1:5173", "http://localhost:5173" "*", "http://127.0.0.1", "http://localhost"]
 
     # Email
     EMAIL_PORT: int = os.getenv("EMAIL_PORT", 587)
@@ -132,6 +133,7 @@ class Configs(BaseSettings):
 
 class TestConfigs(Configs):
     ENV: str = "test"
+
 
 configs = Configs()
 

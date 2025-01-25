@@ -16,6 +16,7 @@ from app.core.container import Container
 from app.util.class_object import singleton
 from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi.openapi.utils import get_openapi
 
 
 @asynccontextmanager
@@ -51,7 +52,7 @@ class AppCreator:
             # openapi_url=f"{configs.API}/openapi.json",
             version="0.0.1",
             description="BTM Corporate Web Server",
-            lifespan=lifespan
+            lifespan=lifespan,
         )
 
         # Store db in app state for access in lifespan context manager
@@ -96,6 +97,66 @@ class AppCreator:
                 await request.state.db.close()
 
         self.app.include_router(routers, prefix=configs.API)
+
+        # Custom OpenAPI schema with security scheme built in
+        # def custom_openapi(app=self.app):
+        #     if app.openapi_schema:
+        #         return app.openapi_schema
+        #     openapi_schema = get_openapi(
+        #         title=app.title,
+        #         version=app.version,
+        #         routes=app.routes,
+        #     )
+        #     openapi_schema["components"]["securitySchemes"] = {
+        #         "ApiKeyHeader": {"type": "apiKey", "in": "cookie", "name": "X-CSRF-Token"},
+        #         "BearerAuth": {
+        #             "type": "http",
+        #             "scheme": "bearer",
+        #             "bearerFormat": "JWT",
+        #         }
+        #     }
+        #     app.openapi_schema = openapi_schema
+        #     return app.openapi_schema
+
+        # self.app.openapi = custom_openapi
+
+        # self.app.openapi_schema = get_openapi(
+        #     title=configs.PROJECT_NAME,
+        #     # openapi_url=f"{configs.API}/openapi.json",
+        #     version="0.0.1",
+        #     description="BTM Corporate Web Server",
+        #     routes=self.app.routes
+        # )
+
+        # # Generate the initial OpenAPI schema
+        # openapi_schema = get_openapi(
+        #     title=configs.PROJECT_NAME,
+        #     version="0.0.1",
+        #     description="BTM Corporate Web Server",
+        #     routes=self.app.routes,  # Ensure routes are passed here
+        # )
+
+        # # Custom modifications to the schema
+        # if "components" not in openapi_schema:
+        #     openapi_schema["components"] = {}
+
+        # if "securitySchemes" not in openapi_schema["components"]:
+        #     openapi_schema["components"]["securitySchemes"] = {}
+
+        # openapi_schema["components"]["securitySchemes"]["BearerAuth"] = {
+        #     "type": "http",
+        #     "scheme": "bearer",
+        #     "bearerFormat": "JWT",
+        # }
+
+        # openapi_schema["components"]["securitySchemes"]["CookieAuth"] = {
+        #     "type": "apiKey",
+        #     "in": "cookie",
+        #     "name": "X-CSRF-Token",
+        # }
+
+        # openapi_schema["security"] = [{"BearerAuth": []}, {"CookieAuth": []}]
+        # self.app.openapi_schema = openapi_schema
 
 
 app_creator = AppCreator()

@@ -5,6 +5,7 @@ from dependency_injector.wiring import inject as di_inject
 from fastapi import Request
 # from loguru import logger
 
+from app.core.exceptions import GeneralError
 from app.services.base_service import BaseService
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,7 +24,8 @@ def inject(func):
             try:
                 injected_services[-1].close_scoped_session()
             except Exception as e:
-                print("kjhgfvgh")
+                raise GeneralError(
+                    detail="An error has occured with this Instance") from e
 
     return wrapper
 

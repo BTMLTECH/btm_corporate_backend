@@ -4,6 +4,7 @@
 """Cache Service"""
 
 
+import json
 from typing import Any, Dict, Optional, Union
 from app.adapter.cache_adapter import RedisClientInterface
 from app.adapter.redis_adapter import RedisClient
@@ -20,15 +21,28 @@ class RedisService:
     def cache_data(self, key: str, value: Any, expiration: int = 3600) -> bool:
         """Cache data in Redis."""
         try:
-              return self.redis_client.set(key, value, ex=expiration)
+            # if not isinstance(value, (str, int, float, bool)):
+            #     value = json.dumps(value)
+            return self.redis_client.set(key, value, ex=expiration)
         except Exception as e:
             print('error setting data in redis', e)
             raise GeneralError(detail="Error setting data in Redis")
 
-
     def retrieve_data(self, key: str) -> Union[Any, Dict[str, Any], None]:
         """Retrieve cached data from Redis."""
-        return self.redis_client.get(key)
+        # return self.redis_client.get(key)
+        try:
+            value = self.redis_client.get(key)  # This is always a string (or None)
+            if value is None:
+                return None
+            # Converts JSON string back to Python object
+            return value
+        except json.JSONDecodeError:
+            raise GeneralError("Something went wrong retrieving your data")
+
+    def delete_data(self, key: str) -> int:
+        """Delete a cached data from redis"""
+        return self.redis_client.delete(key)
 
 
 host = "localhost" if configs.ENV == "dev" else configs.REDIS_HOST
