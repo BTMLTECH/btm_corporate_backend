@@ -131,7 +131,7 @@ class AuthService(BaseService):
             "access_token": access_token,
         }
 
-        self.redis_service.cache_data(
+        await self.redis_service.cache_data(
             f"user:{user.id}", user_data)
 
         sign_in_result = {
@@ -232,12 +232,12 @@ class AuthService(BaseService):
                 "user": new_user,
             }
 
-            self.redis_service.cache_data(
+            await self.redis_service.cache_data(
                 user.id, {**new_user, "access_token": access_token})
 
             return google_signup_result
 
-        self.redis_service.cache_data(
+        await self.redis_service.cache_data(
             user.id, {**new_user, "access_token": access_token})
 
         return self.sign_in(sign_in_info=SignIn(email=user_info.email))

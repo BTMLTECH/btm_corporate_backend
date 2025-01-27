@@ -144,7 +144,7 @@ async def resend_verification(service: AuthService = Depends(Provide[Container.a
 @inject
 async def logout(response: Response, redis_service: RedisService = Depends(Provide[Container.redis_service]), current_user: User = Depends(get_current_user)):
     """Route to logout"""
-    redis_service.delete_data(str(current_user.id))
+    await redis_service.delete_data(str(current_user.id))
     
     response.delete_cookie("access_token")
     response.delete_cookie("csrf_token")
