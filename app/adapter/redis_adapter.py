@@ -1,11 +1,11 @@
 import json
 from typing import Any, Optional
 from redis import Redis, RedisError
-from app.adapter.cache_adapter import RedisClientInterface
+from app.adapter.cache_adapter import RedisClientAdapter
 from app.core.config import configs
 
 
-class RedisClient(RedisClientInterface):
+class RedisAdapter(RedisClientAdapter):
     """Concrete implementation of the Redis client interface."""
 
     def __init__(self, client: Redis):

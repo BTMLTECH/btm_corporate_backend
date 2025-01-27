@@ -188,10 +188,11 @@ async def validation_exception_handler(_, exc):
         "detail": "Validation error", "errors": errors})
 
 db = app_creator.db
+redis_client = app_creator.redis_client
 
 print("✅ Up and running...")
 
-print(db._engine.url, configs.DB_USER)
+print(db._engine.url, redis_client.get_client().ping())
 
 container = app_creator.container
 

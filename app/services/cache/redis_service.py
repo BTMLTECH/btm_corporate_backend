@@ -6,8 +6,8 @@
 
 import json
 from typing import Any, Dict, Optional, Union
-from app.adapter.cache_adapter import RedisClientInterface
-from app.adapter.redis_adapter import RedisClient
+from app.adapter.cache_adapter import RedisClientAdapter
+from app.adapter.redis_adapter import RedisAdapter
 from app.core.config import configs
 from app.core.exceptions import GeneralError
 
@@ -15,7 +15,7 @@ from app.core.exceptions import GeneralError
 class RedisService:
     """A service that uses a Redis client."""
 
-    def __init__(self, redis_adapter: RedisClientInterface):
+    def __init__(self, redis_adapter: RedisAdapter):
         self.redis_adapter = redis_adapter
 
     def cache_data(self, key: str, value: Any, expiration: int = 3600) -> bool:

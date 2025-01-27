@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
 
 
-class RedisClientInterface(ABC):
+class RedisClientAdapter(ABC):
     """Abstract interface for Redis clients."""
 
     @abstractmethod

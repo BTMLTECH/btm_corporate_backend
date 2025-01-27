@@ -5,7 +5,7 @@
 
 from dependency_injector import containers, providers
 from app.adapter.flutter_payment_adapter import FlutterPaymentAdapter
-from app.adapter.redis_adapter import RedisClient
+from app.adapter.redis_adapter import RedisAdapter
 from app.adapter.sqlalchemy_adapter import SQLAlchemyAdapter
 from app.core.config import configs
 from app.core.database import Database, RedisConnection
@@ -71,7 +71,7 @@ class Container(containers.DeclarativeContainer):
         db=0
     )
 
-    redis_adapter = providers.Factory(RedisClient, client=redis_client)
+    redis_adapter = providers.Factory(RedisAdapter, client=redis_client)
 
     # Repositories
     user_repository = providers.Factory(
