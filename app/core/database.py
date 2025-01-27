@@ -6,7 +6,8 @@
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator
 from asyncio import current_task
-import redis
+from redis.asyncio.client import Redis
+import redis.asyncio as redis
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.asyncio import (
@@ -101,15 +102,48 @@ class RedisConnection:
     """Redis Cache"""
 
     def __init__(self, host: str = 'localhost' if configs.ENV == "dev" else configs.REDIS_URL, port: int = 6379, db: int = 0):
-        self.pool = redis.ConnectionPool(
-            host=host, port=port, db=db, max_connections=20)
-        self._client = redis.Redis(
-            connection_pool=self.pool, ssl=True if configs.ENV == "production" else False, decode_responses=True)
+        # self.pool = redis.ConnectionPool(
+        #     host=host, port=port, db=db, max_connections=20)
+        self.pool = redis.ConnectionPool().from_url(
+            "redis://localhost" if configs.ENV == "dev" else configs.REDIS_URL)
+        self._client = redis.Redis.from_pool(
+            connection_pool=self.pool)
 
-    def get_client(self) -> redis.Redis:
-        """Return the Redis client."""
-        return self._client
+    # @asynccontextmanager
+    # async def get_client(self) -> AsyncGenerator[redis.Redis, Any]:
+    #     """Return the Redis client."""
+    #     if self._client is None:
+    #         raise Exception("Redis session is not initialized")
 
-    def close(self) -> None:
+    #     client_pool: redis.Redis = self._client
+
+    #     async with client_pool as conn:
+    #         try:
+    #             yield conn
+    #         except Exception as e:
+    #             raise e
+    #         finally:
+    #             await conn.aclose()
+
+    async def close(self) -> None:
         """Close the connection pool."""
-        self.pool.disconnect()
+        """Close the Redis connection pool."""
+        if self._client is None:
+            raise Exception("Redis connection pool is not initialized.")
+        await self._client.connection.disconnect()
+
+    @asynccontextmanager
+    async def connection(self) -> AsyncGenerator[Redis, Any]:
+        """
+        Provide an async Redis client for usage.
+
+        Example:
+        async with redis_client.connection() as redis:
+            await redis.set("key", "value")
+        """
+        if self._client is None:
+            raise Exception("Redis client is not initialized.")
+        try:
+            yield self._client
+        except Exception as e:
+            raise e

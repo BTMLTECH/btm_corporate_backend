@@ -1,29 +1,29 @@
 import json
-from typing import Any, Optional
-from redis import Redis, RedisError
+from typing import Any, Callable, Optional
 from app.adapter.cache_adapter import RedisClientAdapter
 from app.core.config import configs
+from redis.asyncio.client import Redis
 
 
 class RedisAdapter(RedisClientAdapter):
     """Concrete implementation of the Redis client interface."""
 
-    def __init__(self, client: Redis):
+    def __init__(self, client: Callable[[], Redis]):
         self._client = client
 
-    def set(self, key: str, value: Any, ex: Optional[int] = 3600) -> bool:
+    async def set(self, client: Redis, key: str, value: Any, ex: Optional[int] = 3600) -> bool:
         """Set a value in Redis with an optional expiration time."""
         serialized_value = json.dumps(value)
-        return self._client.set(key, serialized_value, ex=ex)
+        return await client.set(key, serialized_value, ex=ex)
 
-    def hset(self, key: str, value: Any, ex: Optional[int] = None):
+    async def hset(self, client: Redis, key: str, value: Any, ex: Optional[int] = None):
         """Set a dict as value in Redis with an optional expiration time."""
-        return self._client.hset(key, value)
+        return await client.hset(key, value)
 
-    def get(self, key: str) -> Optional[Any]:
+    async def get(self, client: Redis, key: str) -> Optional[Any]:
         """Get a value from Redis by key."""
-        return self._client.get(key)
+        return await client.get(key)
 
-    def delete(self, key: str):
+    async def delete(self, client: Redis, key: str):
         """Delete a key from Redis."""
-        return self._client.delete(key)
+        return await client.delete(key)

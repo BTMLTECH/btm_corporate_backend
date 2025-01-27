@@ -71,7 +71,7 @@ class Container(containers.DeclarativeContainer):
         db=0
     )
 
-    redis_adapter = providers.Factory(RedisAdapter, client=redis_client)
+    redis_adapter = providers.Factory(RedisAdapter, client=redis_client.provided.connection)
 
     # Repositories
     user_repository = providers.Factory(

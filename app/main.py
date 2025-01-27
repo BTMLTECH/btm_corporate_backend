@@ -16,7 +16,7 @@ from app.core.container import Container
 from app.util.class_object import singleton
 from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi.openapi.utils import get_openapi
+import redis.asyncio as redis
 
 
 @asynccontextmanager
@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
     try:
         await db.create_async_database()
         print("✅ Database initialized")
-        redis_client.get_client()
+        redis_client.connection()
         print("✅ Redis cache initialized")
     except Exception as e:
         print(f"❌ Error initializing database: {e}")
@@ -39,7 +39,7 @@ async def lifespan(app: FastAPI):
     # Shutdown
     print("🛑 Shutting down...")
     await db.close()
-    redis_client.close()
+    await redis_client.close()
 
 
 @singleton
@@ -94,6 +94,14 @@ class AppCreator:
             """Middleware to manage database sessions."""
             request.state.db = AsyncSession(
                 autocommit=False, autoflush=False)
+            
+            pool = redis.ConnectionPool().from_url(
+                "redis://localhost" if configs.ENV == "dev" else configs.REDIS_URL)
+
+            redis_conn = redis.Redis.from_pool(
+                connection_pool=pool)
+
+            request.state.redis = redis_conn
             try:
                 response = await call_next(request)
                 # await request.state.db.commit()
@@ -103,6 +111,7 @@ class AppCreator:
                 raise e
             finally:
                 await request.state.db.close()
+                await request.state.redis.aclose()
 
         self.app.include_router(routers, prefix=configs.API)
 
@@ -192,7 +201,7 @@ redis_client = app_creator.redis_client
 
 print("✅ Up and running...")
 
-print(db._engine.url, redis_client.get_client().ping())
+print(db._engine.url)
 
 container = app_creator.container
 

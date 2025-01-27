@@ -89,7 +89,7 @@ class AuthService(BaseService):
             "access_token": access_token,
         }
 
-        self.redis_service.cache_data(
+        await self.redis_service.cache_data(
             f"user:{user.id}", user_data)
 
         sign_in_result = {

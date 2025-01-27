@@ -75,7 +75,7 @@ async def get_current_user(
 
         token_data = Payload(**payload)
 
-        redis_data = redis_service.retrieve_data(f"user:{token_data.id}")
+        redis_data = await redis_service.retrieve_data(f"user:{token_data.id}")
 
         current_user: Union[User, None] = None
 
@@ -92,7 +92,7 @@ async def get_current_user(
                 "access_token": token,
             }
 
-            redis_service.cache_data(f"user:{current_user.id}", user_data)
+            await redis_service.cache_data(f"user:{current_user.id}", user_data)
             return current_user
         else:
             user_data = json.loads(redis_data)
