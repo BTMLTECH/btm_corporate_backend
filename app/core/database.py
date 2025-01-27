@@ -6,6 +6,7 @@
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator
 from asyncio import current_task
+import redis
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.asyncio import (
@@ -16,7 +17,6 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from app.core.config import configs
-
 
 
 Base: DeclarativeBase = declarative_base()
@@ -95,3 +95,21 @@ class Database:
         #     await session.rollback()
         # finally:
         #     await session.close()
+
+
+class RedisConnection:
+    """Redis Cache"""
+
+    def __init__(self, host: str = 'localhost' if configs.ENV == "dev" else configs.REDIS_URL, port: int = 6379, db: int = 0):
+        self.pool = redis.ConnectionPool(
+            host=host, port=port, db=db, max_connections=20)
+        self._client = redis.Redis(
+            connection_pool=self.pool, ssl=True if configs.ENV == "production" else False, decode_responses=True)
+
+    def get_client(self) -> redis.Redis:
+        """Return the Redis client."""
+        return self._client
+
+    def close(self) -> None:
+        """Close the connection pool."""
+        self.pool.disconnect()

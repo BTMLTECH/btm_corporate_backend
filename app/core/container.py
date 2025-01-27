@@ -8,7 +8,7 @@ from app.adapter.flutter_payment_adapter import FlutterPaymentAdapter
 from app.adapter.redis_adapter import RedisClient
 from app.adapter.sqlalchemy_adapter import SQLAlchemyAdapter
 from app.core.config import configs
-from app.core.database import Database
+from app.core.database import Database, RedisConnection
 from app.repository import *
 from app.repository import payment_repository
 from app.repository.accommodation_repository import AccommodationRepository
@@ -65,11 +65,13 @@ class Container(containers.DeclarativeContainer):
     flutter_payment_gateway = providers.Singleton(FlutterPaymentGateway)
 
     redis_client = providers.Singleton(
-        RedisClient,
-        host="localhost" if configs.ENV == "dev" else configs.REDIS_HOST,
+        RedisConnection,
+        host="localhost" if configs.ENV == "dev" else configs.REDIS_URL,
         port=6379,
         db=0
     )
+
+    redis_adapter = providers.Factory(RedisClient, client=redis_client)
 
     # Repositories
     user_repository = providers.Factory(
@@ -113,8 +115,8 @@ class Container(containers.DeclarativeContainer):
 
     activity_service = providers.Factory(
         ActivityService, activity_repository=activity_repository)
-    
-    redis_service = providers.Factory(RedisService, redis_client=redis_client)
+
+    redis_service = providers.Factory(RedisService, redis_adapter=redis_adapter)
 
     auth_service = providers.Factory(
         AuthService,

@@ -119,7 +119,7 @@ class Configs(BaseSettings):
     REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
     REDIS_PORT: str = os.getenv("REDIS_PORT", 6379)
     REDIS_DB: str = os.getenv("REDIS_DB", 0)
-    # REDIS_USERNAME: str = os.getenv("REDIS_USERNAME")
+    REDIS_USERNAME: str = os.getenv("REDIS_USERNAME")
     REDIS_PASSWORD: str = os.getenv("REDIS_PASSWORD")
 
     # find query

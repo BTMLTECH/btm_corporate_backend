@@ -23,9 +23,13 @@ from fastapi.openapi.utils import get_openapi
 async def lifespan(app: FastAPI):
     # Startup: create database connection and any other async resources
     db = app.state.db
+    redis_client = app.state.redis_client
+
     try:
         await db.create_async_database()
         print("✅ Database initialized")
+        redis_client.get_client()
+        print("✅ Redis cache initialized")
     except Exception as e:
         print(f"❌ Error initializing database: {e}")
         raise
@@ -35,6 +39,7 @@ async def lifespan(app: FastAPI):
     # Shutdown
     print("🛑 Shutting down...")
     await db.close()
+    redis_client.close()
 
 
 @singleton
@@ -45,6 +50,8 @@ class AppCreator:
 
         # Get database from container
         self.db = self.container.db()
+
+        self.redis_client = self.container.redis_client()
 
         # set app default
         self.app = FastAPI(
@@ -57,6 +64,7 @@ class AppCreator:
 
         # Store db in app state for access in lifespan context manager
         self.app.state.db = self.db
+        self.app.state.redis_client = self.redis_client
 
         if configs.SECRET_KEY is None:
             raise "Missing Secret Key"
