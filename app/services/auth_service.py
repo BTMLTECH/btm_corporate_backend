@@ -294,8 +294,6 @@ class AuthService(BaseService):
         # Verify state
         stored_state = await self.get_google_state(state)
 
-        print(stored_state, "jhg", state)
-
         received_state = state
 
         if not stored_state or not received_state or stored_state.state != received_state:
