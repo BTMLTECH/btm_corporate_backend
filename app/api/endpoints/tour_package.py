@@ -5,7 +5,7 @@
 
 
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 from app.core.dependencies import get_current_user, is_user_admin
 from app.model.user import User
 from app.schema.payment_schema import PaymentRequest
@@ -24,8 +24,8 @@ router = APIRouter(
 
 @router.post("/add", response_model=None, description="Create a new Tour Package")
 @inject
-async def add_tour_package(tour_package: CreateTourPackage, payment_request: PaymentRequest, service: TourPackagePaymentService = Depends(Provide[Container.tour_package_payment_service]), current_user: User = Depends(get_current_user)):
+async def add_tour_package(background_tasks: BackgroundTasks, tour_package: CreateTourPackage, payment_request: PaymentRequest, service: TourPackagePaymentService = Depends(Provide[Container.tour_package_payment_service]), current_user: User = Depends(get_current_user)):
     """Route to add a tour package"""
-    result = await service.create_tour_package(tour_package, payment_request)
+    result = await service.create_tour_package(tour_package, payment_request, current_user.id, background_tasks)
 
     return result

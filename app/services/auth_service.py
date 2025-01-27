@@ -10,6 +10,7 @@ import secrets
 from typing import Any, Mapping, Optional, Union
 from uuid import uuid4
 
+from fastapi import BackgroundTasks
 from pydantic import EmailStr
 from app.core.config import configs
 from app.core.exceptions import AuthError, GeneralError, ValidationError
@@ -148,7 +149,7 @@ class AuthService(BaseService):
 
         return await self.user_repository.get_by_email(email)
 
-    async def sign_up(self, user_info: CreateUser) -> UserSchema:
+    async def sign_up(self, user_info: CreateUser, background_tasks: BackgroundTasks) -> UserSchema:
         if len(user_info.password) < 6:
             raise ValidationError("Password is too short!")
 
@@ -185,9 +186,17 @@ class AuthService(BaseService):
 
             await self.user_verification_repository.create(user_verification)
 
-            await email_service.send_verification_email(session_id, new_user.email, getenv("API_URI", "https://btmghana.net") + "/verify")
+            # await email_service.send_verification_email(session_id, new_user.email, getenv("API_URI", "https://btmghana.net") + "/verify")
+
+            print("sending verification email in background...")
+
+            verification_url = getenv(
+                "API_URI", "https://btmghana.net") + "/verify"
+
+            background_tasks.add_task(email_service.send_verification_email, session_id, new_user.email, verification_url)
         except Exception as e:
-            raise e
+            print("error", e)
+            raise GeneralError(detail=str(e))
 
         delattr(new_user, "password")
         return UserSchema(**new_user.model_dump(exclude_none=True))

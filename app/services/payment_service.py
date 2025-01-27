@@ -24,7 +24,7 @@ class PaymentGatewayService(BaseService):
 
         super().__init__(repository)
 
-    async def process_payment(self, payment_request: FlutterPaymentRequest):
+    async def process_payment(self, payment_request: FlutterPaymentRequest, user_id: UUID):
         try:
             req = await self._payment_gateway.initiate_payment(payment_request)
 
@@ -41,7 +41,7 @@ class PaymentGatewayService(BaseService):
 
                                 try:
                                     package_payment = await self.repository.create(PackagePaymentSchema(
-                                        amount=amount, currency=currency, user_id=payment_request.user_id, transaction_ref=tx_ref, payment_gateway="Flutterwave", payment_ref=flw_ref, tour_package_id=payment_request.tour_package_id))
+                                        amount=amount, currency=currency, user_id=user_id, transaction_ref=tx_ref, payment_gateway="Flutterwave", payment_ref=flw_ref, tour_package_id=payment_request.tour_package_id))
                                 except:
                                     raise
 

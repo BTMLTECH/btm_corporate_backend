@@ -19,7 +19,7 @@ class TourPackageService(BaseService):
 
         super().__init__(tour_package_repository)
 
-    async def add(self, schema: CreateTourPackage):
+    async def add(self, schema: CreateTourPackage, user_id: UUID):
         """Create a Tour package after validating input data."""
         def validate_uuid(value, field_name):
             """Validate a UUID string and return the UUID object."""
@@ -33,7 +33,7 @@ class TourPackageService(BaseService):
         schema.accommodation_id = validate_uuid(
             schema.accommodation_id, "Accommodation")
         schema.region_id = validate_uuid(schema.region_id, "Region")
-        schema.user_id = validate_uuid(schema.user_id, "User")
+        user_id = validate_uuid(str(user_id), "User")
 
         # Validate that lists are not empty
         if not schema.activities:
@@ -57,7 +57,7 @@ class TourPackageService(BaseService):
             # Create the tour package
             # self.payment_service.process_payment({"hi": 123})
             # return None
-            return await self.tour_package_repository.create(schema)
+            return await self.tour_package_repository.create(schema, user_id)
         except NotFoundError as e:
             # Handle NotFoundError from the repository
             raise NotFoundError(detail=e.detail)

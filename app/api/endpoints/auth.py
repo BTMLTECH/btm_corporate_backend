@@ -6,7 +6,7 @@
 
 import os
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends, Request, Response, responses
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, responses
 from fastapi.encoders import jsonable_encoder
 from app.core.dependencies import get_current_user
 from app.core.exceptions import AuthError
@@ -64,10 +64,10 @@ async def sign_in(user_info: UserLogin, service: AuthService =
 
 @router.post("/sign-up", response_model=UserSchema)
 @inject
-async def sign_up(user_info: CreateUser, service: AuthService =
+async def sign_up(background_tasks: BackgroundTasks, user_info: CreateUser, service: AuthService =
                   Depends(Provide[Container.auth_service])):
     """Router to sign up"""
-    user = await service.sign_up(user_info)
+    user = await service.sign_up(user_info, background_tasks)
 
     return user
 

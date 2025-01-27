@@ -18,7 +18,7 @@ class FlutterPaymentRequest(BaseModel):
     expiry_year: Union[str, int]
     name: str
     email: str
-    user_id: Union[str, None] = None
+    # user_id: Union[str, None] = None
     # tx_ref: str
     tour_package_id: str
     # redirect_url: Union[str, None] = Field(default=None)
@@ -34,7 +34,7 @@ class PaymentRequest(BaseModel):
     expiry_month: Union[str, int]
     expiry_year: Union[str, int]
     email: str
-    user_id: Union[str, None] = None
+    # user_id: Union[str, None] = None
     # tx_ref: str
     tour_package_id: str
     # redirect_url: Union[str, None] = Field(default=None)

@@ -32,12 +32,12 @@ class TourPackageRepository(BaseRepository):
 
         super().__init__(db_adapter, TourPackage)
 
-    async def create(self, schema: CreateTourPackage) -> TourPackage:
+    async def create(self, schema: CreateTourPackage, user_id: UUID) -> TourPackage:
         """Create a tour package"""
         async with self.db_adapter.session() as session, session.begin():
             try:
                 user_query = select(User).where(
-                    User.id == schema.user_id)
+                    User.id == user_id)
 
                 user_result = (await session.execute(user_query)).scalar_one_or_none()
 
@@ -46,7 +46,7 @@ class TourPackageRepository(BaseRepository):
 
                 schema_dict = {
                     "active": False,
-                    "user_id": schema.user_id,
+                    "user_id": user_id,
                     "accommodation_id": schema.accommodation_id,
                     "no_of_people_attending": schema.no_of_people_attending,
                     "start_date": schema.start_date,
