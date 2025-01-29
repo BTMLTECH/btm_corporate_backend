@@ -193,7 +193,8 @@ class AuthService(BaseService):
             verification_url = getenv(
                 "API_URI", "https://btmghana.net") + "/verify"
 
-            background_tasks.add_task(email_service.send_verification_email, session_id, new_user.email, verification_url)
+            background_tasks.add_task(
+                email_service.send_verification_email, session_id, new_user.email, verification_url)
         except Exception as e:
             print("error", e)
             raise GeneralError(detail=str(e))
@@ -201,7 +202,7 @@ class AuthService(BaseService):
         delattr(new_user, "password")
         return UserSchema(**new_user.model_dump(exclude_none=True))
 
-    async def google_sign_up(self, user_info: GoogleSignIn):
+    async def google_sign_up(self, user_info: GoogleSignIn, background_tasks: BackgroundTasks):
         """Google Signup"""
 
         user_exists: User = await self.user_repository.get_by_email(user_info.email)
@@ -211,34 +212,41 @@ class AuthService(BaseService):
             user = User(**user_info.model_dump(exclude_none=True), is_active=True,
                         is_admin=False, provider="google")
 
-            new_user = await self.user_repository.create(user)
+            try:
+                new_user = await self.user_repository.create(user)
 
-            payload = Payload(
-                id=str(new_user.id),
-                email=new_user.email,
-                name=new_user.name,
-                is_admin=new_user.is_admin,
-            )
+                payload = Payload(
+                    id=str(new_user.id),
+                    email=new_user.email,
+                    name=new_user.name,
+                    is_admin=new_user.is_admin,
+                )
 
-            token_lifespan = timedelta(
-                minutes=configs.ACCESS_TOKEN_EXPIRE_MINUTES)
+                token_lifespan = timedelta(
+                    minutes=configs.ACCESS_TOKEN_EXPIRE_MINUTES)
 
-            access_token, expiration_datetime = create_access_token(
-                payload.model_dump(), token_lifespan)
+                access_token, expiration_datetime = create_access_token(
+                    payload.model_dump(), token_lifespan)
 
-            google_signup_result = {
-                "access_token": access_token,
-                "expiration": expiration_datetime,
-                "user": new_user,
-            }
+                email_service = EmailService(configs.SMTP_SERVER, configs.EMAIL_PORT,
+                                             configs.EMAIL_USERNAME, configs.EMAIL_PASSWORD, configs.SENDER_EMAIL)
 
-            await self.redis_service.cache_data(
-                user.id, {**new_user, "access_token": access_token})
+                
+                background_tasks.add_task(
+                email_service.send_email, new_user.email, subject="Welcome to BTM Ghana!",
+                                               content="You have successfully signed up on BTM Ghana. Welcome")
+                print("Sending email...")
 
-            return google_signup_result
+                google_signup_result = {
+                    "access_token": access_token,
+                    "expiration": expiration_datetime,
+                    "user": new_user,
+                }
 
-        await self.redis_service.cache_data(
-            user.id, {**new_user, "access_token": access_token})
+                return google_signup_result
+            except Exception as e:
+                print("error", e)
+                raise GeneralError(detail="An unknown error has occured") from str(e)
 
         return self.sign_in(sign_in_info=SignIn(email=user_info.email))
 
@@ -282,7 +290,8 @@ class AuthService(BaseService):
                 return AuthError(detail="Account exists! Please login.")
 
             await self.google_repository.delete_by_state(state)
-            return await self.google_sign_up(GoogleSignIn(**user_info))
+            background_tasks = BackgroundTasks()
+            return await self.google_sign_up(GoogleSignIn(**user_info), background_tasks)
         except Exception as e:
             return GeneralError(detail=str(e))
 

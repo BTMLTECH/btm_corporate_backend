@@ -94,7 +94,7 @@ async def google_login_callback(request: Request, google_data: GoogleCallbackDat
 
 @router.get("/google/register", summary="Google Sign Up")
 @inject
-async def google_signup(request: Request, service: AuthService =
+async def google_signup(request: Request,  service: AuthService =
                         Depends(Provide[Container.auth_service])):
     """Route to sign up using Google"""
     authorization_url, state = google_register_auth.get_google_auth_state()
