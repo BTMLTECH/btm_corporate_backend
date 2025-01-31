@@ -4,6 +4,7 @@
 """Auth endpoint"""
 
 
+import asyncio
 import os
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, responses
@@ -19,6 +20,7 @@ from app.core.container import Container
 from app.schema.auth_schema import CreateUser, ForgotPasswordSchema, GoogleCallbackData, UserLogin, VerifyUser
 from app.services.auth_service import AuthService
 from app.util.google import google_login_auth, google_register_auth
+from app.core.config import configs
 
 
 router = APIRouter(
@@ -63,9 +65,25 @@ async def sign_in(user_info: UserLogin, service: AuthService =
     return response
 
 
+@router.get("/test-email")
+async def test_background_task(background_tasks: BackgroundTasks):
+    session_id = "12345"
+    email = "thekccfyouth@gmail.com"
+    verification_url = "https://example.com/verify"
+    email_service = EmailService(configs.SMTP_SERVER, configs.EMAIL_PORT,
+                                 configs.EMAIL_USERNAME, configs.EMAIL_PASSWORD, configs.SENDER_EMAIL)
+    
+    await email_service.send_verification_email(session_id, email, verification_url)
+
+    background_tasks.add_task(
+        email_service.send_verification_email, session_id, email, verification_url)
+
+    return {"message": "Email task added"}
+
+
 @router.post("/sign-up", response_model=UserSchema)
 @inject
-async def sign_up(background_tasks: BackgroundTasks, user_info: CreateUser, service: AuthService =
+async def sign_up(response: Response, background_tasks: BackgroundTasks, user_info: CreateUser, service: AuthService =
                   Depends(Provide[Container.auth_service])):
     """Router to sign up"""
     user = await service.sign_up(user_info, background_tasks)

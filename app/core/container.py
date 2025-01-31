@@ -72,7 +72,8 @@ class Container(containers.DeclarativeContainer):
         db=0
     )
 
-    redis_adapter = providers.Factory(RedisAdapter, client=redis_client.provided.connection)
+    redis_adapter = providers.Factory(
+        RedisAdapter, client=redis_client.provided.connection)
 
     # Repositories
     user_repository = providers.Factory(
@@ -111,13 +112,18 @@ class Container(containers.DeclarativeContainer):
     payment_repository = providers.Factory(PaymentRepository, database_adapter)
 
     # Services
+    email_service = providers.Factory(
+        EmailService, configs.SMTP_SERVER, configs.EMAIL_PORT,
+        configs.EMAIL_USERNAME, configs.EMAIL_PASSWORD, configs.SENDER_EMAIL
+    )
     accommodation_service = providers.Factory(
         AccommodationService, accommodation_repository=accommodation_repository)
 
     activity_service = providers.Factory(
         ActivityService, activity_repository=activity_repository)
 
-    redis_service = providers.Factory(RedisService, redis_adapter=redis_adapter)
+    redis_service = providers.Factory(
+        RedisService, redis_adapter=redis_adapter)
 
     auth_service = providers.Factory(
         AuthService,
@@ -125,12 +131,8 @@ class Container(containers.DeclarativeContainer):
         user_verification_repository=user_verification_repository,
         user_repository=user_repository,
         google_repository=google_repository,
-        redis_service=redis_service
-    )
-
-    email_service = providers.Factory(
-        EmailService, configs.SMTP_SERVER, configs.EMAIL_PORT,
-                                         configs.EMAIL_USERNAME, configs.EMAIL_PASSWORD, configs.SENDER_EMAIL
+        redis_service=redis_service,
+        email_service=email_service
     )
 
     payment_gateway_service = providers.Factory(

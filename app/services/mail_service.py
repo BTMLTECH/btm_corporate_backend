@@ -5,6 +5,8 @@ from uuid import uuid4
 from pydantic import EmailStr
 import logging
 
+from app.core.exceptions import GeneralError
+
 
 class EmailService:
     def __init__(
@@ -57,7 +59,7 @@ class EmailService:
             message["Subject"] = subject
             message["From"] = f"{self.sender_name} <{self.sender_email}>"
             message["To"] = to_email
-            
+
             print("sending...")
             self.logger.info(f"Sending email to {to_email}")
             with SMTP(self.smtp_server, self.smtp_port) as server:
@@ -129,13 +131,18 @@ class EmailService:
         #     )
 
         # Send the verification email
-        await self.send_email(
-            to_email=email,
-            subject="BTM Ghana - Email Verification",
-            content=email_content
-        )
-
-        return verification_data
+        try:
+            print("Sending...")
+            await self.send_email(
+                to_email=email,
+                subject="BTM Ghana - Email Verification",
+                content=email_content
+            )
+            print("Sent")
+            return verification_data
+        except Exception as e:
+            print("An error has occured", e)
+            raise GeneralError(detail="Failure in sending email.")
 
 
 class EmailServiceException(Exception):

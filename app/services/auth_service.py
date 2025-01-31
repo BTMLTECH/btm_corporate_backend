@@ -4,13 +4,15 @@
 """Auth Service"""
 
 
+import asyncio
 from datetime import timedelta, timezone
+from functools import partial
 import json
 import secrets
 from typing import Any, Mapping, Optional, Union
 from uuid import uuid4
 
-from fastapi import BackgroundTasks
+from fastapi import BackgroundTasks, Depends
 from pydantic import EmailStr
 from app.core.config import configs
 from app.core.exceptions import AuthError, GeneralError, ValidationError
@@ -35,14 +37,21 @@ from datetime import datetime
 
 
 class AuthService(BaseService):
-    def __init__(self, auth_repository: AuthRepository, user_verification_repository: UserVerificationRepository, user_repository: UserRepository, google_repository: GoogleRepository, redis_service: RedisService):
+    def __init__(self, auth_repository: AuthRepository, user_verification_repository: UserVerificationRepository, user_repository: UserRepository, google_repository: GoogleRepository, redis_service: RedisService, email_service: EmailService):
         self.auth_repository = auth_repository
         self.user_verification_repository = user_verification_repository
         self.user_repository = user_repository
         self.google_repository = google_repository
         self.redis_service = redis_service
+        self.email_service = email_service
 
         super().__init__(auth_repository)
+
+    async def send_verification_email(self, session_id: str, email: str, verification_url: str):
+        email_service = EmailService(configs.SMTP_SERVER, configs.EMAIL_PORT,
+                                     configs.EMAIL_USERNAME, configs.EMAIL_PASSWORD, configs.SENDER_EMAIL)
+
+        return await email_service.send_verification_email(session_id, email, verification_url)
 
     async def sign_in(self, sign_in_info: UserLogin):
         user = await self.user_repository.get_by_email(sign_in_info.email)
@@ -149,7 +158,7 @@ class AuthService(BaseService):
 
         return await self.user_repository.get_by_email(email)
 
-    async def sign_up(self, user_info: CreateUser, background_tasks: BackgroundTasks,) -> UserSchema:
+    async def sign_up(self, user_info: CreateUser, background_tasks: BackgroundTasks) -> UserSchema:
         if len(user_info.password) < 6:
             raise ValidationError("Password is too short!")
 
@@ -176,9 +185,6 @@ class AuthService(BaseService):
             access_token, _ = create_access_token(
                 payload.model_dump(), token_lifespan)
 
-            email_service = EmailService(configs.SMTP_SERVER, configs.EMAIL_PORT,
-                                         configs.EMAIL_USERNAME, configs.EMAIL_PASSWORD, configs.SENDER_EMAIL)
-
             session_id = uuid4()
 
             user_verification = UserVerification(
@@ -189,8 +195,19 @@ class AuthService(BaseService):
             verification_url = getenv(
                 "API_URI", "https://btmghana.net") + "/verify"
 
-            background_tasks.add_task(
-                email_service.send_verification_email, session_id, new_user.email, verification_url)
+            # await email_service.send_verification_email(session_id, new_user.email, verification_url)
+            # lambda: asyncio.run(self.email_service.send_verification_email(session_id, new_user.email, verification_url))
+            # email_service = EmailService(configs.SMTP_SERVER, configs.EMAIL_PORT,
+            #                          configs.EMAIL_USERNAME, configs.EMAIL_PASSWORD, configs.SENDER_EMAIL)
+            
+            # email_task = partial(
+            #     email_service.send_verification_email, session_id, new_user.email, verification_url)
+            # email_task = partial(email_service.send_verification_email,
+            #                      session_id, new_user.email, verification_url)
+
+            # await self.email_service.send_verification_email(session_id, new_user.email, verification_url)
+
+            background_tasks.add_task(self.email_service.send_verification_email, session_id, new_user.email, verification_url)
         except Exception as e:
             print("error", e)
             raise GeneralError(detail=str(e))
