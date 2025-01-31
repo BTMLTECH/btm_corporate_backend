@@ -101,3 +101,6 @@ class SignUpResponse(BaseModel):
     
 class VerifyUser(BaseModel):
     session_id: str
+
+class ForgotPasswordSchema(BaseModel):
+    email: EmailStr

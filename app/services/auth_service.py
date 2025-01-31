@@ -149,7 +149,7 @@ class AuthService(BaseService):
 
         return await self.user_repository.get_by_email(email)
 
-    async def sign_up(self, user_info: CreateUser, background_tasks: BackgroundTasks) -> UserSchema:
+    async def sign_up(self, user_info: CreateUser, background_tasks: BackgroundTasks,) -> UserSchema:
         if len(user_info.password) < 6:
             raise ValidationError("Password is too short!")
 
@@ -185,10 +185,6 @@ class AuthService(BaseService):
                 session_id=session_id, email=user.email, token=access_token)
 
             await self.user_verification_repository.create(user_verification)
-
-            # await email_service.send_verification_email(session_id, new_user.email, getenv("API_URI", "https://btmghana.net") + "/verify")
-
-            print("sending verification email in background...")
 
             verification_url = getenv(
                 "API_URI", "https://btmghana.net") + "/verify"
@@ -231,11 +227,24 @@ class AuthService(BaseService):
                 email_service = EmailService(configs.SMTP_SERVER, configs.EMAIL_PORT,
                                              configs.EMAIL_USERNAME, configs.EMAIL_PASSWORD, configs.SENDER_EMAIL)
 
-                
+                email_content = """
+                Welcome to BTM Ghana! We're excited to have you on board. Since you signed up using Google, you’re all set—no extra steps needed!
+
+                Here’s what you can do next:
+                    ✅ Get started with creating your customized tour package or booking a flight.
+
+                If you ever have any questions, feel free to reach out to our support team at {0}.
+
+                We’re thrilled to have you with us! 🚀
+
+                Cheers,
+                BTM Ghana
+                https://btmghana.net
+            """.format("info@btmghana.net")
+
                 background_tasks.add_task(
-                email_service.send_email, new_user.email, subject="Welcome to BTM Ghana!",
-                                               content="You have successfully signed up on BTM Ghana. Welcome")
-                print("Sending email...")
+                    email_service.send_email, new_user.email, subject="Welcome to BTM Ghana – We're Glad You're Here! 🎉",
+                    content=email_content)
 
                 google_signup_result = {
                     "access_token": access_token,
@@ -246,11 +255,12 @@ class AuthService(BaseService):
                 return google_signup_result
             except Exception as e:
                 print("error", e)
-                raise GeneralError(detail="An unknown error has occured") from str(e)
+                raise GeneralError(
+                    detail="An unknown error has occured") from str(e)
 
         return self.sign_in(sign_in_info=SignIn(email=user_info.email))
 
-    async def google_sign_up_temp(self, code: str, state: str):
+    async def google_sign_up_temp(self, code: str, state: str, background_tasks: BackgroundTasks):
         """"""
         if not code:
             return GeneralError(detail="Authorization code is missings")
@@ -269,15 +279,6 @@ class AuthService(BaseService):
 
         credentials = flow.credentials
 
-        # request.session['credentials'] = {
-        #     'token': credentials.token,
-        #     'refresh_token': credentials.refresh_token,
-        #     'token_uri': credentials.token_uri,
-        #     'client_id': credentials.client_id,
-        #     'client_secret': credentials.client_secret,
-        #     'scopes': credentials.scopes,
-        # }
-
         try:
             user_info: Optional[Mapping[str, Any]] = google_register_auth.verify_google_token(
                 id_token=credentials._id_token)
@@ -290,7 +291,6 @@ class AuthService(BaseService):
                 return AuthError(detail="Account exists! Please login.")
 
             await self.google_repository.delete_by_state(state)
-            background_tasks = BackgroundTasks()
             return await self.google_sign_up(GoogleSignIn(**user_info), background_tasks)
         except Exception as e:
             return GeneralError(detail=str(e))
@@ -316,15 +316,6 @@ class AuthService(BaseService):
             return GeneralError(detail="Authorization failed. Please try again!")
 
         credentials = flow.credentials
-
-        # request.session['credentials'] = {
-        #     'token': credentials.token,
-        #     'refresh_token': credentials.refresh_token,
-        #     'token_uri': credentials.token_uri,
-        #     'client_id': credentials.client_id,
-        #     'client_secret': credentials.client_secret,
-        #     'scopes': credentials.scopes,
-        # }
 
         try:
             user_info: Optional[Mapping[str, Any]] = google_login_auth.verify_google_token(
@@ -357,12 +348,6 @@ class AuthService(BaseService):
     async def send_sign_up_verification_email(self, email: EmailStr, token: str, expiration_time: int = 15):
         """"""
         token_id = str(uuid4())
-
-        # verification_data = {
-        #     "id": token_id,
-        #     "email": email,
-        #     "token": token
-        # }
 
         # Plain text content
         text = """\
@@ -407,7 +392,13 @@ class AuthService(BaseService):
         return False
 
     async def reset_password(self, email: EmailStr):
-        """"""
+        """Reset user password"""
+        try:
+            pass
+        except Exception as e:
+            print("An error has occured", e)
+            raise GeneralError(
+                detail="An error has occured while trying to reset your password") from e
 
     async def verify_user_sign_up(self, session_id: str) -> bool:
         """Verify a user's account after sign up"""
@@ -494,8 +485,13 @@ class AuthService(BaseService):
 
             await self.user_verification_repository.create(user_verification)
 
-            await email_service.send_verification_email(session_id, user.email, getenv("API_URI", "https://btmghana.net") + "/verify")
+            verification_url = getenv(
+                "API_URI", "https://btmghana.net") + "/verify"
 
+            background_tasks = BackgroundTasks()
+
+            background_tasks.add_task(
+                email_service.send_verification_email, session_id, user.email, verification_url)
         except Exception as e:
             if "recently" in str(e):
                 raise GeneralError(detail=str(e))

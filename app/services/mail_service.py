@@ -57,7 +57,9 @@ class EmailService:
             message["Subject"] = subject
             message["From"] = f"{self.sender_name} <{self.sender_email}>"
             message["To"] = to_email
-
+            
+            print("sending...")
+            self.logger.info(f"Sending email to {to_email}")
             with SMTP(self.smtp_server, self.smtp_port) as server:
                 server.starttls()
                 server.login(self.username, self.password)
@@ -65,6 +67,7 @@ class EmailService:
                                 message.as_string())
 
             self.logger.info(f"Email sent successfully to {to_email}")
+            print("sent.")
             return True
 
         except Exception as e:
@@ -99,12 +102,12 @@ class EmailService:
 
         verification_link = f"{verification_url}?token={session_id}"
 
-        email_content = f"""
-        Hi,
+        email_content = f"""Hi,
 
         Thanks for signing up on BTM Ghana!
 
-        To complete your registration, please click on the link below to verify your email address:
+        To complete your registration, please click on the link below\n
+        to verify your email address:
 
         {verification_link}
 

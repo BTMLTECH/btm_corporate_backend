@@ -37,6 +37,7 @@ from app.services.transportation_service import TransportationService
 from app.services.user_service import UserService
 from app.services import *
 from rave_python import Rave
+from app.core.config import configs
 
 
 class Container(containers.DeclarativeContainer):
@@ -125,6 +126,11 @@ class Container(containers.DeclarativeContainer):
         user_repository=user_repository,
         google_repository=google_repository,
         redis_service=redis_service
+    )
+
+    email_service = providers.Factory(
+        EmailService, configs.SMTP_SERVER, configs.EMAIL_PORT,
+                                         configs.EMAIL_USERNAME, configs.EMAIL_PASSWORD, configs.SENDER_EMAIL
     )
 
     payment_gateway_service = providers.Factory(

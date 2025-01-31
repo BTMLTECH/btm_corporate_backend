@@ -13,9 +13,10 @@ from app.core.exceptions import AuthError
 from app.model.user import User
 from app.schema.user_schema import UserSchema
 from app.services.cache.redis_service import RedisService
+from app.services.mail_service import EmailService
 from app.services.user_service import UserService
 from app.core.container import Container
-from app.schema.auth_schema import CreateUser, GoogleCallbackData, UserLogin, VerifyUser
+from app.schema.auth_schema import CreateUser, ForgotPasswordSchema, GoogleCallbackData, UserLogin, VerifyUser
 from app.services.auth_service import AuthService
 from app.util.google import google_login_auth, google_register_auth
 
@@ -106,10 +107,10 @@ async def google_signup(request: Request,  service: AuthService =
 
 @router.post("/google/register/callback", summary="Google Login Authentication")
 @inject
-async def google_register_callback(request: Request, google_data: GoogleCallbackData, service: AuthService =
+async def google_register_callback(background_tasks: BackgroundTasks, google_data: GoogleCallbackData, service: AuthService =
                                    Depends(Provide[Container.auth_service])):
     """Google Login callback"""
-    return await service.google_sign_up_temp(google_data.code, google_data.state)
+    return await service.google_sign_up_temp(google_data.code, google_data.state, background_tasks)
 
 
 @router.post("/verify", summary="Verify user registration")
@@ -140,12 +141,20 @@ async def resend_verification(service: AuthService = Depends(Provide[Container.a
     return await service.resend_verification(current_user)
 
 
+@router.post("/forgot-password")
+@inject
+async def forgot_password(user: ForgotPasswordSchema, service: AuthService = Depends(Provide[Container.auth_service])):
+    """Route to forgot password"""
+    result = await service.reset_password(user.email)
+    return result
+
+
 @router.post("/logout")
 @inject
 async def logout(response: Response, redis_service: RedisService = Depends(Provide[Container.redis_service]), current_user: User = Depends(get_current_user)):
     """Route to logout"""
     await redis_service.delete_data(str(current_user.id))
-    
+
     response.delete_cookie("access_token")
     response.delete_cookie("csrf_token")
 
