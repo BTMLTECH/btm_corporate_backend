@@ -80,5 +80,3 @@ google_login_auth = GoogleAuth(client_secrets_file=configs.GOOGLE_CLIENT,
 
 google_register_auth = GoogleAuth(client_secrets_file=configs.GOOGLE_CLIENT,
                                           redirect_uri=configs.GOOGLE_REGISTER_REDIRECT_URI if configs.ENV == "production" else configs.GOOGLE_LOCAL_REGISTER_REDIRECT_URI, scopes=configs.GOOGLE_SCOPES)
-
-google_auth = GoogleAuth(client_secrets_file=configs.GOOGLE_CLIENT, redirect_uri=configs.GOOGLE_LOCAL_REDIRECT_URI if configs.ENV == "production" else configs.GOOGLE_LOCAL_LOGIN_REDIRECT_URI, scopes=configs.GOOGLE_SCOPES)

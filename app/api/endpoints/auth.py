@@ -26,7 +26,7 @@ from app.schema.auth_schema import (
 )
 from app.services.auth_service import AuthService
 from app.tasks import send_email
-from app.util.google import google_login_auth, google_register_auth, google_auth
+from app.util.google import google_login_auth, google_register_auth
 from app.core.config import configs
 
 
@@ -122,7 +122,7 @@ async def google_login(
     request: Request, service: AuthService = Depends(Provide[Container.auth_service])
 ):
     """Route to login using Google"""
-    authorization_url, state = google_auth.get_google_auth_state()
+    authorization_url, state = google_login_auth.get_google_auth_state()
 
     await service.store_google_state(state, "Login")
 
@@ -164,8 +164,9 @@ async def google_login_callback(
     #     subject="Welcome to BTM Ghana – We're Glad You're Here! 🎉",
     #     content=email_content,
     # )
-   
+
     return user
+
 
 @router.get("/google/register", summary="Google Sign Up")
 @inject

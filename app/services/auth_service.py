@@ -36,7 +36,7 @@ from os import getenv
 from app.services.base_service import BaseService
 from app.services.cache.redis_service import RedisService
 from app.services.mail_service import EmailService
-from app.util.google import google_login_auth, google_register_auth, google_auth
+from app.util.google import google_login_auth, google_register_auth
 from datetime import datetime
 from google_auth_oauthlib.flow import Flow
 
