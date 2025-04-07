@@ -26,12 +26,11 @@ router = APIRouter(
 )
 
 
-@router.post("/process-payment", response_model=None)
+@router.post("/process", response_model=None)
 @inject
 async def initiate_payment(payment_request: FlutterPaymentRequest, service: PaymentGatewayService = Depends(Provide[Container.payment_gateway_service]), current_user: User = Depends(get_current_active_user)):
     """Route to Initiate a payment"""
-    payment_request.user_id = current_user.id
-    payment = await service.process_payment(payment_request)
+    payment = await service.process_payment(payment_request, current_user)
 
     return payment
 

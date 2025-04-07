@@ -12,7 +12,7 @@ from app.repository.base_repository import BaseRepository
 from app.schema.activity_schema import CreateActivity
 from psycopg2 import IntegrityError
 from app.core.exceptions import DuplicatedError
-
+from sqlalchemy.orm import selectinload
 
 T = TypeVar("T", bound=Activity)
 
@@ -34,6 +34,12 @@ class ActivityRepository(BaseRepository):
                 await self.db_adapter.add(session, query)
                 await self.db_adapter.flush(session)
                 await self.db_adapter.refresh(session, query)
+
+                query = select(self.model).options(
+                    selectinload(self.model.tour_sites_region),
+                ).where(self.model.id == query.id)
+
+                query = (await session.execute(query)).scalar_one()
             except IntegrityError as e:
                 await self.db_adapter.rollback(session)
                 raise DuplicatedError(detail=str(e.orig))
@@ -69,11 +75,13 @@ class ActivityRepository(BaseRepository):
 
     async def get_all(self):
         """Get list of activities"""
-        query = select(self.model)
+        query = select(self.model).options(
+            selectinload(self.model.tour_sites_region),
+        )
 
         async with self.db_adapter.session() as session, session.begin():
             try:
-                result = (await session.execute(query)).scalars().all()
+                result = (await session.execute(query)).scalars().fetchall()
 
                 return result
             except:

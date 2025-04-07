@@ -59,8 +59,11 @@ class Configs(BaseSettings):
                                 'https://www.googleapis.com/auth/userinfo.email', 'openid']
     GOOGLE_LOCAL_LOGIN_REDIRECT_URI: str = os.getenv(
         "GOOGLE_LOCAL_OAUTH_LOGIN_REDIRECT_URI")
+    
     GOOGLE_LOCAL_REGISTER_REDIRECT_URI: str = os.getenv(
         "GOOGLE_LOCAL_OAUTH_REGISTER_REDIRECT_URI")
+    
+    GOOGLE_LOCAL_REDIRECT_URI: str = os.getenv("GOOGLE_OAUTH_LOCAL_REDIRECT_URI")
 
     GOOGLE_LOGIN_REDIRECT_URI: str = os.getenv(
         "GOOGLE_OAUTH_LOGIN_REDIRECT_URI")

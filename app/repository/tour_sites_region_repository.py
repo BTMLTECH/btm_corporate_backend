@@ -13,7 +13,7 @@ from app.repository.base_repository import BaseRepository
 from app.schema.tour_sites_region_schema import CreateTourSitesRegion
 from psycopg2 import IntegrityError
 from app.core.exceptions import DuplicatedError, GeneralError, NotFoundError
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy.exc import SQLAlchemyError, CompileError, DBAPIError
 
 
@@ -103,7 +103,7 @@ class TourSitesRegionRepository(BaseRepository):
     async def find_all(self) -> Sequence[TourSitesRegion]:
         """Returns a list of all toursites in regions"""
         async with self.db_adapter.session() as session, session.begin():
-            query = select(self.model).options(joinedload(self.model.region))
+            query = select(self.model).options(selectinload(self.model.region), selectinload(self.model.activities))
 
             try:
                 result = (await session.execute(query)).scalars().all()

@@ -57,18 +57,18 @@ async def get_current_user(
     redis_service: RedisService = Depends(Provide[Container.redis_service])
 ) -> User:
 
-    csrf_token_header = request.headers.get("X-CSRF-Token")
+    # csrf_token_header = request.headers.get("X-CSRF-Token")
 
-    if not csrf_token_header:
-        raise AuthForbiddenError(detail="CSRF token is missing")
+    # if not csrf_token_header:
+    #     raise AuthForbiddenError(detail="CSRF token is missing")
 
-    csrf_token_cookie = request.cookies.get("csrf_token")
+    # csrf_token_cookie = request.cookies.get("csrf_token")
 
-    if not csrf_token_cookie:
-        raise AuthForbiddenError(detail="CSRF token cookie is missing")
+    # if not csrf_token_cookie:
+    #     raise AuthForbiddenError(detail="CSRF token cookie is missing")
 
-    if csrf_token_header != csrf_token_cookie:
-        raise AuthForbiddenError(detail="Invalid CSRF token")
+    # if csrf_token_header != csrf_token_cookie:
+    #     raise AuthForbiddenError(detail="Invalid CSRF token")
     try:
         payload = jwt.decode(
             token, configs.SECRET_KEY, algorithms=ALGORITHM)
@@ -97,9 +97,9 @@ async def get_current_user(
         else:
             user_data = json.loads(redis_data)
 
-            if user_data["csrf_token"] != csrf_token_header:
-                raise AuthForbiddenError(
-                    detail="Could not validate credentials")
+            # if user_data["csrf_token"] != csrf_token_header:
+            #     raise AuthForbiddenError(
+            #         detail="Could not validate credentials")
 
             user = CachedUser(**user_data)
 

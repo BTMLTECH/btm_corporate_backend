@@ -29,5 +29,7 @@ class TourSitesRegion(BaseModel, table=True):
     # Many-to-One relationship with Region
     region: Region = Relationship(back_populates="sites")
 
+    activities: List["Activity"] = Relationship(back_populates="tour_sites_region")
+
     tour_packages: List["TourPackage"] = Relationship(back_populates="tour_sites_region", link_model=TourPackageTourSitesRegionLink)
 

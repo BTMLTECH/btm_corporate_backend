@@ -16,8 +16,12 @@ from fastapi import BackgroundTasks, Depends
 from pydantic import EmailStr
 from app.core.config import configs
 from app.core.exceptions import AuthError, GeneralError, ValidationError
-from app.core.security import JWTBearer, create_access_token, get_password_hash, \
-    verify_password
+from app.core.security import (
+    JWTBearer,
+    create_access_token,
+    get_password_hash,
+    verify_password,
+)
 from app.model.google import GoogleVerification
 from app.model.user import User, UserVerification
 from app.repository.auth_repository import AuthRepository
@@ -32,12 +36,21 @@ from os import getenv
 from app.services.base_service import BaseService
 from app.services.cache.redis_service import RedisService
 from app.services.mail_service import EmailService
-from app.util.google import google_login_auth, google_register_auth
+from app.util.google import google_login_auth, google_register_auth, google_auth
 from datetime import datetime
+from google_auth_oauthlib.flow import Flow
 
 
 class AuthService(BaseService):
-    def __init__(self, auth_repository: AuthRepository, user_verification_repository: UserVerificationRepository, user_repository: UserRepository, google_repository: GoogleRepository, redis_service: RedisService, email_service: EmailService):
+    def __init__(
+        self,
+        auth_repository: AuthRepository,
+        user_verification_repository: UserVerificationRepository,
+        user_repository: UserRepository,
+        google_repository: GoogleRepository,
+        redis_service: RedisService,
+        email_service: EmailService,
+    ):
         self.auth_repository = auth_repository
         self.user_verification_repository = user_verification_repository
         self.user_repository = user_repository
@@ -47,11 +60,20 @@ class AuthService(BaseService):
 
         super().__init__(auth_repository)
 
-    async def send_verification_email(self, session_id: str, email: str, verification_url: str):
-        email_service = EmailService(configs.SMTP_SERVER, configs.EMAIL_PORT,
-                                     configs.EMAIL_USERNAME, configs.EMAIL_PASSWORD, configs.SENDER_EMAIL)
+    async def send_verification_email(
+        self, session_id: str, email: str, verification_url: str
+    ):
+        email_service = EmailService(
+            configs.SMTP_SERVER,
+            configs.EMAIL_PORT,
+            configs.EMAIL_USERNAME,
+            configs.EMAIL_PASSWORD,
+            configs.SENDER_EMAIL,
+        )
 
-        return await email_service.send_verification_email(session_id, email, verification_url)
+        return await email_service.send_verification_email(
+            session_id, email, verification_url
+        )
 
     async def sign_in(self, sign_in_info: UserLogin):
         user = await self.user_repository.get_by_email(sign_in_info.email)
@@ -59,11 +81,12 @@ class AuthService(BaseService):
         if not user:
             raise AuthError(detail="Incorrect email or password")
 
-        if user.provider == 'google':
+        if user.provider == "google":
             raise AuthError(detail="You signed up using a different method.")
 
-        if (user.password and sign_in_info.password) and\
-                not verify_password(sign_in_info.password, user.password):
+        if (user.password and sign_in_info.password) and not verify_password(
+            sign_in_info.password, user.password
+        ):
             raise AuthError(detail="Incorrect email or password")
 
         if not user.is_active:
@@ -78,13 +101,15 @@ class AuthService(BaseService):
             is_admin=user.is_admin,
         )
 
-        token_lifespan = timedelta(
-            minutes=configs.ACCESS_TOKEN_EXPIRE_MINUTES)
+        token_lifespan = timedelta(minutes=configs.ACCESS_TOKEN_EXPIRE_MINUTES)
 
         access_token, expiration_datetime = create_access_token(
-            payload.model_dump(), token_lifespan)
+            payload.model_dump(), token_lifespan
+        )
 
-        await self.user_repository.update_by_id(user.id, {"last_login_at": datetime.now()})
+        await self.user_repository.update_by_id(
+            user.id, {"last_login_at": datetime.now()}
+        )
 
         csrf_token = secrets.token_hex(32)
 
@@ -93,13 +118,20 @@ class AuthService(BaseService):
             "created_at": str(user.created_at),
             "updated_at": str(user.updated_at),
             "last_login_at": str(user.last_login_at),
-            **user.model_dump(exclude=["id", "created_at", "updated_at", "deleted_at", "last_login_at"]),
+            **user.model_dump(
+                exclude=[
+                    "id",
+                    "created_at",
+                    "updated_at",
+                    "deleted_at",
+                    "last_login_at",
+                ]
+            ),
             "csrf_token": csrf_token,
             "access_token": access_token,
         }
 
-        await self.redis_service.cache_data(
-            f"user:{user.id}", user_data)
+        await self.redis_service.cache_data(f"user:{user.id}", user_data)
 
         sign_in_result = {
             "access_token": access_token,
@@ -112,7 +144,7 @@ class AuthService(BaseService):
     async def google_sign_in(self, sign_in_info: UserLogin):
         user = await self.user_repository.get_by_email(sign_in_info.email)
 
-        if user and user.provider != 'google':
+        if user and user.provider != "google":
             return AuthError(detail="You signed up using a different method")
 
         payload = Payload(
@@ -122,11 +154,11 @@ class AuthService(BaseService):
             is_admin=user.is_admin,
         )
 
-        token_lifespan = timedelta(
-            minutes=configs.ACCESS_TOKEN_EXPIRE_MINUTES)
+        token_lifespan = timedelta(minutes=configs.ACCESS_TOKEN_EXPIRE_MINUTES)
 
         access_token, expiration_datetime = create_access_token(
-            payload.model_dump(), token_lifespan)
+            payload.model_dump(), token_lifespan
+        )
 
         csrf_token = secrets.token_hex(32)
 
@@ -135,13 +167,20 @@ class AuthService(BaseService):
             "created_at": str(user.created_at),
             "updated_at": str(user.updated_at),
             "last_login_at": str(user.last_login_at),
-            **user.model_dump(exclude=["id", "created_at", "updated_at", "deleted_at", "last_login_at"]),
+            **user.model_dump(
+                exclude=[
+                    "id",
+                    "created_at",
+                    "updated_at",
+                    "deleted_at",
+                    "last_login_at",
+                ]
+            ),
             "csrf_token": csrf_token,
             "access_token": access_token,
         }
 
-        await self.redis_service.cache_data(
-            f"user:{user.id}", user_data)
+        await self.redis_service.cache_data(f"user:{user.id}", user_data)
 
         sign_in_result = {
             "access_token": access_token,
@@ -158,12 +197,18 @@ class AuthService(BaseService):
 
         return await self.user_repository.get_by_email(email)
 
-    async def sign_up(self, user_info: CreateUser, background_tasks: BackgroundTasks) -> UserSchema:
+    async def sign_up(
+        self, user_info: CreateUser, background_tasks: BackgroundTasks
+    ) -> UserSchema:
         if len(user_info.password) < 6:
             raise ValidationError("Password is too short!")
 
-        user = User(**user_info.model_dump(exclude_none=True),
-                    is_active=True, is_admin=False, provider="email")
+        user = User(
+            **user_info.model_dump(exclude_none=True),
+            is_active=True,
+            is_admin=False,
+            provider="email",
+        )
 
         user.password = get_password_hash(user_info.password)
 
@@ -179,27 +224,25 @@ class AuthService(BaseService):
                 is_admin=new_user.is_admin,
             )
 
-            token_lifespan = timedelta(
-                minutes=15)
+            token_lifespan = timedelta(minutes=15)
 
-            access_token, _ = create_access_token(
-                payload.model_dump(), token_lifespan)
+            access_token, _ = create_access_token(payload.model_dump(), token_lifespan)
 
             session_id = uuid4()
 
             user_verification = UserVerification(
-                session_id=session_id, email=user.email, token=access_token)
+                session_id=session_id, email=user.email, token=access_token
+            )
 
             await self.user_verification_repository.create(user_verification)
 
-            verification_url = getenv(
-                "API_URI", "https://btmghana.net") + "/verify"
+            verification_url = getenv("API_URI", "https://btmghana.net") + "/verify"
 
             # await email_service.send_verification_email(session_id, new_user.email, verification_url)
             # lambda: asyncio.run(self.email_service.send_verification_email(session_id, new_user.email, verification_url))
             # email_service = EmailService(configs.SMTP_SERVER, configs.EMAIL_PORT,
             #                          configs.EMAIL_USERNAME, configs.EMAIL_PASSWORD, configs.SENDER_EMAIL)
-            
+
             # email_task = partial(
             #     email_service.send_verification_email, session_id, new_user.email, verification_url)
             # email_task = partial(email_service.send_verification_email,
@@ -207,7 +250,12 @@ class AuthService(BaseService):
 
             # await self.email_service.send_verification_email(session_id, new_user.email, verification_url)
 
-            background_tasks.add_task(self.email_service.send_verification_email, session_id, new_user.email, verification_url)
+            background_tasks.add_task(
+                self.email_service.send_verification_email,
+                session_id,
+                new_user.email,
+                verification_url,
+            )
         except Exception as e:
             print("error", e)
             raise GeneralError(detail=str(e))
@@ -215,15 +263,21 @@ class AuthService(BaseService):
         delattr(new_user, "password")
         return UserSchema(**new_user.model_dump(exclude_none=True))
 
-    async def google_sign_up(self, user_info: GoogleSignIn, background_tasks: BackgroundTasks):
+    async def google_sign_up(
+        self, user_info: GoogleSignIn, background_tasks: BackgroundTasks
+    ):
         """Google Signup"""
 
         user_exists: User = await self.user_repository.get_by_email(user_info.email)
 
         if not user_exists or user_exists is None:
             # register user here
-            user = User(**user_info.model_dump(exclude_none=True), is_active=True,
-                        is_admin=False, provider="google")
+            user = User(
+                **user_info.model_dump(exclude_none=True),
+                is_active=True,
+                is_admin=False,
+                provider="google",
+            )
 
             try:
                 new_user = await self.user_repository.create(user)
@@ -235,14 +289,11 @@ class AuthService(BaseService):
                     is_admin=new_user.is_admin,
                 )
 
-                token_lifespan = timedelta(
-                    minutes=configs.ACCESS_TOKEN_EXPIRE_MINUTES)
+                token_lifespan = timedelta(minutes=configs.ACCESS_TOKEN_EXPIRE_MINUTES)
 
                 access_token, expiration_datetime = create_access_token(
-                    payload.model_dump(), token_lifespan)
-
-                email_service = EmailService(configs.SMTP_SERVER, configs.EMAIL_PORT,
-                                             configs.EMAIL_USERNAME, configs.EMAIL_PASSWORD, configs.SENDER_EMAIL)
+                    payload.model_dump(), token_lifespan
+                )
 
                 email_content = """
                 Welcome to BTM Ghana! We're excited to have you on board. Since you signed up using Google, you’re all set—no extra steps needed!
@@ -257,11 +308,16 @@ class AuthService(BaseService):
                 Cheers,
                 BTM Ghana
                 https://btmghana.net
-            """.format("info@btmghana.net")
+            """.format(
+                    "info@btmghana.net"
+                )
 
                 background_tasks.add_task(
-                    email_service.send_email, new_user.email, subject="Welcome to BTM Ghana – We're Glad You're Here! 🎉",
-                    content=email_content)
+                    self.email_service.send_mail,
+                    new_user.email,
+                    subject="Welcome to BTM Ghana – We're Glad You're Here! 🎉",
+                    content=email_content,
+                )
 
                 google_signup_result = {
                     "access_token": access_token,
@@ -272,12 +328,17 @@ class AuthService(BaseService):
                 return google_signup_result
             except Exception as e:
                 print("error", e)
-                raise GeneralError(
-                    detail="An unknown error has occured") from str(e)
+                raise GeneralError(detail="An unknown error has occured") from str(e)
 
-        return self.sign_in(sign_in_info=SignIn(email=user_info.email))
+        return await self.sign_in(sign_in_info=SignIn(email=user_info.email))
 
-    async def google_sign_up_temp(self, code: str, state: str, background_tasks: BackgroundTasks):
+    async def google_sign_up_temp(
+        self,
+        code: str,
+        state: str,
+        background_tasks: BackgroundTasks,
+        flow: Union[Flow, None],
+    ):
         """"""
         if not code:
             return GeneralError(detail="Authorization code is missings")
@@ -286,29 +347,40 @@ class AuthService(BaseService):
 
         received_state = state
 
-        if not stored_state or not received_state or stored_state.state != received_state:
+        if (
+            not stored_state
+            or not received_state
+            or stored_state.state != received_state
+        ):
             return AuthError(detail="Authentication failed. Please try again")
 
-        flow = google_register_auth.google_auth_flow(code)
+        # flow = google_auth.google_auth_flow(code)
 
         if flow is None:
-            return AuthError(detail="Authorization failed. Please try again!")
+            print("here", code)
+            # return AuthError(detail="Authorization failed. Please try again!")
+            flow = google_auth.google_auth_flow(code)
 
         credentials = flow.credentials
 
         try:
-            user_info: Optional[Mapping[str, Any]] = google_register_auth.verify_google_token(
-                id_token=credentials._id_token)
+            user_info: Optional[Mapping[str, Any]] = google_auth.verify_google_token(
+                id_token=credentials._id_token
+            )
 
             # check if user already exists
-            existing_user = await self.user_repository.get_by_email(user_info.get('email'))
+            existing_user = await self.user_repository.get_by_email(
+                user_info.get("email")
+            )
 
-            if stored_state.auth_type == 'Register' and existing_user:
+            if stored_state.auth_type == "Register" and existing_user:
                 await self.google_repository.delete_by_state(state)
                 return AuthError(detail="Account exists! Please login.")
 
             await self.google_repository.delete_by_state(state)
-            return await self.google_sign_up(GoogleSignIn(**user_info), background_tasks)
+            return await self.google_sign_up(
+                GoogleSignIn(**user_info), background_tasks
+            )
         except Exception as e:
             return GeneralError(detail=str(e))
 
@@ -322,11 +394,15 @@ class AuthService(BaseService):
 
         received_state = state
 
-        if not stored_state or not received_state or stored_state.state != received_state:
+        if (
+            not stored_state
+            or not received_state
+            or stored_state.state != received_state
+        ):
             await self.google_repository.delete_by_state(state)
             return AuthError(detail="Authentication failed. Please try again")
 
-        flow = google_login_auth.google_auth_flow(code)
+        flow = google_auth.google_auth_flow(code)
 
         if flow is None:
             await self.google_repository.delete_by_state(state)
@@ -335,17 +411,80 @@ class AuthService(BaseService):
         credentials = flow.credentials
 
         try:
-            user_info: Optional[Mapping[str, Any]] = google_login_auth.verify_google_token(
-                id_token=credentials._id_token)
+            user_info: Optional[Mapping[str, Any]] = google_auth.verify_google_token(
+                id_token=credentials._id_token
+            )
 
             existing_user: Union[User, None]
+
             if user_info is not None:
                 # check if user already exists
-                existing_user = await self.user_repository.get_by_email(user_info.get('email', ""))
+                existing_user = await self.user_repository.get_by_email(
+                    user_info.get("email", "")
+                )
 
             if existing_user is not None:
                 await self.google_repository.delete_by_state(state)
-                return await self.google_sign_in(sign_in_info=SignIn(email=existing_user.email))
+                return await self.google_sign_in(
+                    sign_in_info=SignIn(email=existing_user.email)
+                )
+
+            try:
+
+                google_user_info = GoogleSignIn(**user_info)
+                user = User(
+                    **google_user_info.model_dump(exclude_none=True),
+                    is_active=True,
+                    is_admin=False,
+                    provider="google",
+                )
+                new_user = await self.user_repository.create(user)
+
+                payload = Payload(
+                    id=str(new_user.id),
+                    email=new_user.email,
+                    name=new_user.name,
+                    is_admin=new_user.is_admin,
+                )
+
+                token_lifespan = timedelta(minutes=configs.ACCESS_TOKEN_EXPIRE_MINUTES)
+
+                access_token, expiration_datetime = create_access_token(
+                    payload.model_dump(), token_lifespan
+                )
+
+                csrf_token = secrets.token_hex(32)
+                user_data = {
+                    "id": str(new_user.id),
+                    "created_at": str(new_user.created_at),
+                    "updated_at": str(new_user.updated_at),
+                    "last_login_at": str(new_user.last_login_at),
+                    **new_user.model_dump(
+                        exclude=[
+                            "id",
+                            "created_at",
+                            "updated_at",
+                            "deleted_at",
+                            "last_login_at",
+                        ]
+                    ),
+                    "csrf_token": csrf_token,
+                    "access_token": access_token,
+                }
+
+                await self.redis_service.cache_data(f"user:{new_user.id}", user_data)
+
+                google_signup_result = {
+                    "csrf_token": csrf_token,
+                    "access_token": access_token,
+                    "expiration": expiration_datetime,
+                    "user": new_user,
+                }
+
+                return google_signup_result
+            except Exception as e:
+                print("error", e)
+                raise GeneralError(detail="An unknown error has occured") from str(e)
 
             await self.google_repository.delete_by_state(state)
             return AuthError(detail="Account does not exist! Please sign up")
@@ -362,7 +501,9 @@ class AuthService(BaseService):
 
         return verified
 
-    async def send_sign_up_verification_email(self, email: EmailStr, token: str, expiration_time: int = 15):
+    async def send_sign_up_verification_email(
+        self, email: EmailStr, token: str, expiration_time: int = 15
+    ):
         """"""
         token_id = str(uuid4())
 
@@ -379,7 +520,9 @@ class AuthService(BaseService):
         Best regards,
         BTM Ghana
         btmghana.net
-        """.format(token_id)
+        """.format(
+            token_id
+        )
 
         # Create MIMEText object
         message = MIMEText(text, "plain")
@@ -396,8 +539,11 @@ class AuthService(BaseService):
             with SMTP(configs.SMTP_SERVER, configs.EMAIL_PORT) as server:
                 server.starttls()  # Secure the connection
                 server.login(configs.EMAIL_USERNAME, configs.EMAIL_PASSWORD)
-                server.sendmail(configs.SENDER_EMAIL, "oluwatobilobagunloye@gmail.com",
-                                message.as_string())
+                server.sendmail(
+                    configs.SENDER_EMAIL,
+                    "oluwatobilobagunloye@gmail.com",
+                    message.as_string(),
+                )
 
             # redis_client.set(token_id, verification_data,
             #                  expiry_seconds=60*expiration_time)
@@ -415,11 +561,14 @@ class AuthService(BaseService):
         except Exception as e:
             print("An error has occured", e)
             raise GeneralError(
-                detail="An error has occured while trying to reset your password") from e
+                detail="An error has occured while trying to reset your password"
+            ) from e
 
     async def verify_user_sign_up(self, session_id: str) -> bool:
         """Verify a user's account after sign up"""
-        session_id_exists = await self.user_verification_repository.verify_sign_up(session_id)
+        session_id_exists = await self.user_verification_repository.verify_sign_up(
+            session_id
+        )
 
         if session_id_exists is not None:
             from datetime import datetime
@@ -429,7 +578,9 @@ class AuthService(BaseService):
             verified = jwt.verify_jwt(session_id_exists.token)
 
             if not verified:
-                delete_verification = await self.user_verification_repository.delete(session_id_exists.session_id)
+                delete_verification = await self.user_verification_repository.delete(
+                    session_id_exists.session_id
+                )
                 if delete_verification or not delete_verification:
                     return False
                 return False
@@ -437,7 +588,9 @@ class AuthService(BaseService):
             current_time_utc = datetime.now(timezone.utc)
 
             if current_time_utc > session_id_exists.expires_at:
-                await self.user_verification_repository.delete(session_id_exists.session_id)
+                await self.user_verification_repository.delete(
+                    session_id_exists.session_id
+                )
                 return False
 
             else:
@@ -446,14 +599,16 @@ class AuthService(BaseService):
                 if user is None:
                     return False
 
-                user_updated = await self.user_repository.update(user, {
-                    "email_verified": True
-                })
+                user_updated = await self.user_repository.update(
+                    user, {"email_verified": True}
+                )
 
                 if user_updated is None:
                     return False
 
-                delete_verification = await self.user_verification_repository.delete(session_id_exists.session_id)
+                delete_verification = await self.user_verification_repository.delete(
+                    session_id_exists.session_id
+                )
 
                 if delete_verification or not delete_verification:
                     return True
@@ -462,7 +617,9 @@ class AuthService(BaseService):
 
         return False
 
-    async def store_google_state(self, state: str, auth_type: str = "Login") -> GoogleVerification:
+    async def store_google_state(
+        self, state: str, auth_type: str = "Login"
+    ) -> GoogleVerification:
         """Store google state"""
         google_state = GoogleVerification(state=state, auth_type=auth_type)
 
@@ -486,35 +643,39 @@ class AuthService(BaseService):
                 is_admin=user.is_admin,
             )
 
-            token_lifespan = timedelta(
-                minutes=15)
+            token_lifespan = timedelta(minutes=15)
 
-            access_token, _ = create_access_token(
-                payload.model_dump(), token_lifespan)
+            access_token, _ = create_access_token(payload.model_dump(), token_lifespan)
 
-            email_service = EmailService(configs.SMTP_SERVER, configs.EMAIL_PORT,
-                                         configs.EMAIL_USERNAME, configs.EMAIL_PASSWORD, configs.SENDER_EMAIL)
+            email_service = EmailService(
+                configs.SMTP_SERVER,
+                configs.EMAIL_PORT,
+                configs.EMAIL_USERNAME,
+                configs.EMAIL_PASSWORD,
+                configs.SENDER_EMAIL,
+            )
 
             session_id = uuid4()
 
             user_verification = UserVerification(
-                session_id=session_id, email=user.email, token=access_token)
+                session_id=session_id, email=user.email, token=access_token
+            )
 
             await self.user_verification_repository.create(user_verification)
 
-            verification_url = getenv(
-                "API_URI", "https://btmghana.net") + "/verify"
+            verification_url = getenv("API_URI", "https://btmghana.net") + "/verify"
 
             background_tasks = BackgroundTasks()
 
             background_tasks.add_task(
-                email_service.send_verification_email, session_id, user.email, verification_url)
+                email_service.send_verification_email,
+                session_id,
+                user.email,
+                verification_url,
+            )
         except Exception as e:
             if "recently" in str(e):
                 raise GeneralError(detail=str(e))
             raise GeneralError(detail=str(e))
 
-        return {
-            "success": True,
-            "message": "Verification link has been sent"
-        }
+        return {"success": True, "message": "Verification link has been sent"}

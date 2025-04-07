@@ -144,6 +144,20 @@ class EmailService:
             print("An error has occured", e)
             raise GeneralError(detail="Failure in sending email.")
 
+    async def send_mail(self, email: EmailStr,
+        subject: str,
+        content: str,):
+        """Send an email"""
+        try:
+            await self.send_email(
+                to_email=email,
+                subject=subject,
+                content=content
+            )
+            return True
+        except Exception as e:
+            print("An error has occured", e)
+            raise GeneralError(detail="Failure in sending email.")
 
 class EmailServiceException(Exception):
     """Custom exception for email service related errors."""

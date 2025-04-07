@@ -10,7 +10,7 @@ from app.core.dependencies import is_user_admin
 from app.core.exceptions import GeneralError
 from app.model.activity import Activity
 from app.model.user import User
-from app.schema.activity_schema import CreateActivity
+from app.schema.activity_schema import ActivitySchema, CreateActivity
 from app.services.activity_service import ActivityService
 from app.core.container import Container
 
@@ -22,7 +22,7 @@ router = APIRouter(
 )
 
 
-@router.post("/add", response_model=Activity)
+@router.post("/add", response_model=ActivitySchema)
 @inject
 async def add_activity(activity: CreateActivity, service: ActivityService = Depends(Provide[Container.activity_service]), current_user: User = Depends(is_user_admin)):
     """Route to add an activity"""

@@ -146,67 +146,51 @@ class FlutterPaymentGateway(BasePaymentGateway):
                                     elif response_data["data"]["status"] == "pending":
                                         if "meta" in response_data:
                                             if "authorization" in response_data["meta"]:
-                                                if response_data["meta"]["authorization"]["mode"] == "otp":
-                                                    # return response_data
-                                                    print(
-                                                        response_data["data"])
-                                                    raise GeneralError(detail={
-                                                        "success": False,
-                                                        "tx_ref": response_data["data"]["tx_ref"],
-                                                        "flw_ref": response_data["data"]["flw_ref"],
+                                                # Payment is redirected
+                                                if response_data["meta"]["authorization"]["mode"] == "redirect":
+                                                    return {
+                                                        "success": "pending",
                                                         "message": response_data["data"]["processor_response"],
                                                         **response_data["meta"]
-                                                    })
+                                                    }
+
+                                                # if response_data["meta"]["authorization"]["mode"] == "otp":
+                                                #     # return response_data
+                                                #     print(
+                                                #         response_data["data"])
+                                                #     raise GeneralError(detail={
+                                                #         "success": False,
+                                                #         "tx_ref": response_data["data"]["tx_ref"],
+                                                #         "flw_ref": response_data["data"]["flw_ref"],
+                                                #         "message": response_data["data"]["processor_response"],
+                                                #         **response_data["meta"]
+                                                #     })
                                                     return {
                                                         "tx_ref": response_data["data"]["tx_ref"],
                                                         "flw_ref": response_data["data"]["flw_ref"],
                                                         "message": response_data["data"]["processor_response"],
                                                         **response_data["meta"]
                                                     }
-                                            raise GeneralError(detail={
-                                                "success": False,
-                                                "message": response_data["data"]["processor_response"],
-                                                **response_data["meta"]
-                                            })
+                                            # raise GeneralError(detail={
+                                            #     "success": False,
+                                            #     "message": response_data["data"]["processor_response"],
+                                            #     **response_data["meta"]
+                                            # })
+                                            print("holala", response_data)
                                             return {
+                                                "success": "pending",
                                                 "message": response_data["data"]["processor_response"],
                                                 **response_data["meta"]
                                             }
-                                elif "meta" in response_data:
-                                    if "authorization" in response_data["meta"]:
-                                        if response_data["meta"]["authorization"]["mode"] == "otp":
-                                            # return response_data
-                                            raise GeneralError(detail={
-                                                "success": False,
-                                                "tx_ref": response_data["data"]["tx_ref"],
-                                                "flw_ref": response_data["data"]["flw_ref"],
-                                                "message": response_data["data"]["processor_response"],
-                                                **response_data["meta"]
-                                            })
-                                            return {
-                                                "tx_ref": response_data["data"]["tx_ref"],
-                                                "flw_ref": response_data["data"]["flw_ref"],
-                                                "message": response_data["data"]["processor_response"],
-                                                **response_data["meta"]
-                                            }
-                                        elif response_data["meta"]["authorization"]["mode"] == "avs_noauth":
-                                            raise GeneralError(detail={
-                                                "success": False,
-                                                **response_data["meta"]
-                                            })
-                                            return {
-                                                **response_data["meta"]
-                                            }
-                                        raise GeneralError(detail={
-                                            "success": False,
-                                            "message": response_data["data"]["processor_response"],
-                                            **response_data["meta"]
-                                        })
+                                elif "data" not in response_data and "meta" in response_data:
+                                    if response_data["status"] == "success":
+                                        print("iya baba e", response_data)
                                         return {
-                                            "message": response_data["data"]["processor_response"],
+                                            "success": response_data["status"],
+                                            "message": response_data["message"],
                                             **response_data["meta"]
                                         }
-                except:
+                except Exception as e:
                     print("error in _charge_card")
                     raise
             return response_data

@@ -7,7 +7,14 @@
 from uuid import UUID
 
 from aiohttp import ClientConnectorDNSError
-from app.core.exceptions import AuthForbiddenError, DuplicatedError, GeneralError, NotFoundError, ServerError
+from app.core.exceptions import (
+    AuthForbiddenError,
+    DuplicatedError,
+    GeneralError,
+    NotFoundError,
+    ServerError,
+)
+from app.model.user import User
 from app.repository.payment_repository import PaymentRepository
 from app.schema.payment_schema import FlutterPaymentRequest, PackagePaymentSchema
 from app.services.base_payment_service import BasePaymentGateway, PaymentService
@@ -18,17 +25,19 @@ from app.services.user_service import UserService
 
 
 class PaymentGatewayService(BaseService):
-    def __init__(self, repository: PaymentRepository, payment_gateway: BasePaymentGateway):
+    def __init__(
+        self, repository: PaymentRepository, payment_gateway: BasePaymentGateway
+    ):
         self.repository = repository
         self._payment_gateway = payment_gateway
 
         super().__init__(repository)
 
-    async def process_payment(self, payment_request: FlutterPaymentRequest, user_id: UUID):
+    async def process_payment(self, payment_request: FlutterPaymentRequest, user: User):
         try:
             req = await self._payment_gateway.initiate_payment(payment_request)
 
-            if 'status' in req:
+            if "status" in req:
                 if req["status"] == "success":
                     if "data" in req:
                         if "status" in req["data"]:
@@ -40,8 +49,18 @@ class PaymentGatewayService(BaseService):
                                 currency = req["data"]["currency"]
 
                                 try:
-                                    package_payment = await self.repository.create(PackagePaymentSchema(
-                                        amount=amount, currency=currency, user_id=user_id, transaction_ref=tx_ref, payment_gateway="Flutterwave", payment_ref=flw_ref, tour_package_id=payment_request.tour_package_id))
+                                    package_payment = await self.repository.create(
+                                        PackagePaymentSchema(
+                                            amount=amount,
+                                            currency=currency,
+                                            user_id=user.id,
+                                            user=user,
+                                            transaction_ref=tx_ref,
+                                            payment_gateway="Flutterwave",
+                                            payment_ref=flw_ref,
+                                            tour_package_id=payment_request.tour_package_id,
+                                        )
+                                    )
                                 except:
                                     raise
 
@@ -52,10 +71,11 @@ class PaymentGatewayService(BaseService):
         except ClientConnectorDNSError as e:
             print("e", e)
             raise ServerError(
-                detail="Client is not connected to the internet or connection failed")
-        except:
-            print("okurr")
-            raise
+                detail="Client is not connected to the internet or connection failed"
+            )
+        except Exception as e:
+            print("okurr", e)
+            raise e
 
     async def verify_payment(self, tx_ref: str):
         """whoo"""
