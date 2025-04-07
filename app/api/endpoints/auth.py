@@ -132,14 +132,11 @@ async def google_login(
 @router.post("/google/login/callback", summary="Google Login Authentication")
 @inject
 async def google_login_callback(
-    background_tasks: BackgroundTasks,
     google_data: GoogleCallbackData,
     service: AuthService = Depends(Provide[Container.auth_service]),
 ):
     """Google Login callback"""
-    user = await service.google_sign_in_temp(
-        google_data.code, google_data.state, background_tasks
-    )
+    user = await service.google_sign_in_temp(google_data.code, google_data.state)
 
     email_content = """
                 Welcome to BTM Ghana! We're excited to have you on board. Since you signed up using Google, you’re all set—no extra steps needed!
@@ -164,6 +161,13 @@ async def google_login_callback(
     #     subject="Welcome to BTM Ghana – We're Glad You're Here! 🎉",
     #     content=email_content,
     # )
+
+    send_email.delay(
+        "oluwatobilobagunloye@gmail.com",
+        "Welcome to BTM Ghana – We're Glad You're Here! 🎉",
+        email_content,
+    )
+
 
     return user
 
