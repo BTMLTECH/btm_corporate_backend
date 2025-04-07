@@ -364,8 +364,8 @@ class AuthService(BaseService):
         credentials = flow.credentials
 
         try:
-            user_info: Optional[Mapping[str, Any]] = google_register_auth.verify_google_token(
-                id_token=credentials._id_token
+            user_info: Optional[Mapping[str, Any]] = (
+                google_register_auth.verify_google_token(id_token=credentials._id_token)
             )
 
             # check if user already exists
@@ -411,8 +411,8 @@ class AuthService(BaseService):
         credentials = flow.credentials
 
         try:
-            user_info: Optional[Mapping[str, Any]] = google_login_auth.verify_google_token(
-                id_token=credentials._id_token
+            user_info: Optional[Mapping[str, Any]] = (
+                google_login_auth.verify_google_token(id_token=credentials._id_token)
             )
 
             existing_user: Union[User, None]
