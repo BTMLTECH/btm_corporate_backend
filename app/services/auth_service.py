@@ -359,12 +359,12 @@ class AuthService(BaseService):
         if flow is None:
             print("here", code)
             # return AuthError(detail="Authorization failed. Please try again!")
-            flow = google_auth.google_auth_flow(code)
+            flow = google_register_auth.google_auth_flow(code)
 
         credentials = flow.credentials
 
         try:
-            user_info: Optional[Mapping[str, Any]] = google_auth.verify_google_token(
+            user_info: Optional[Mapping[str, Any]] = google_register_auth.verify_google_token(
                 id_token=credentials._id_token
             )
 
@@ -402,7 +402,7 @@ class AuthService(BaseService):
             await self.google_repository.delete_by_state(state)
             return AuthError(detail="Authentication failed. Please try again")
 
-        flow = google_auth.google_auth_flow(code)
+        flow = google_login_auth.google_auth_flow(code)
 
         if flow is None:
             await self.google_repository.delete_by_state(state)
@@ -411,7 +411,7 @@ class AuthService(BaseService):
         credentials = flow.credentials
 
         try:
-            user_info: Optional[Mapping[str, Any]] = google_auth.verify_google_token(
+            user_info: Optional[Mapping[str, Any]] = google_login_auth.verify_google_token(
                 id_token=credentials._id_token
             )
 
