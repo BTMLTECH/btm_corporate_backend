@@ -4,8 +4,6 @@
 """Auth endpoint"""
 
 
-import asyncio
-import os
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, responses
 from fastapi.encoders import jsonable_encoder
