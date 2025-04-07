@@ -4,15 +4,11 @@
 """Auth Service"""
 
 
-import asyncio
 from datetime import timedelta, timezone
-from functools import partial
-import json
 import secrets
 from typing import Any, Mapping, Optional, Union
 from uuid import uuid4
-
-from fastapi import BackgroundTasks, Depends
+from fastapi import BackgroundTasks
 from pydantic import EmailStr
 from app.core.config import configs
 from app.core.exceptions import AuthError, GeneralError, ValidationError
