@@ -4,11 +4,12 @@
 """Celery"""
 
 from celery import Celery
+import os
 
 celery_app = Celery(
     "worker",
-    broker="redis://localhost:6379/0",
-    backend="redis://localhost:6379/0",
+    broker=os.getenv("CELERY_REDIS_BROKER"),
+    backend=os.getenv("CELERY_REDIS_BACKEND"),
     include=["app.tasks"]
 )
 

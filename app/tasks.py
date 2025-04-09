@@ -12,7 +12,6 @@ from app.core.container import Container
 
 @celery_app.task
 def send_email(email: str, subject: str, content: str):
-    print(f"Sending email to {email}")
 
     async def start_email_service():
         email_service: EmailService = Container.email_service()

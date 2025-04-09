@@ -16,7 +16,7 @@ class EmailService:
         username: str,
         password: str,
         sender_email: str,
-        sender_name: str = "BTM Ghana"
+        sender_name: str = "BTM Ghana",
     ):
         """Initialize the email service with SMTP configuration.
 
@@ -41,7 +41,7 @@ class EmailService:
         to_email: EmailStr,
         subject: str,
         content: str,
-        content_type: str = "plain"
+        content_type: str = "plain",
     ) -> bool:
         """Generic method to send emails.
 
@@ -60,16 +60,13 @@ class EmailService:
             message["From"] = f"{self.sender_name} <{self.sender_email}>"
             message["To"] = to_email
 
-            print("sending...")
             self.logger.info(f"Sending email to {to_email}")
             with SMTP(self.smtp_server, self.smtp_port) as server:
                 server.starttls()
                 server.login(self.username, self.password)
-                server.sendmail(self.sender_email, to_email,
-                                message.as_string())
+                server.sendmail(self.sender_email, to_email, message.as_string())
 
             self.logger.info(f"Email sent successfully to {to_email}")
-            print("sent.")
             return True
 
         except Exception as e:
@@ -99,7 +96,7 @@ class EmailService:
         verification_data = {
             "session_id": session_id,
             "email": email,
-            "expiration_minutes": expiration_minutes
+            "expiration_minutes": expiration_minutes,
         }
 
         verification_link = f"{verification_url}?token={session_id}"
@@ -122,21 +119,12 @@ class EmailService:
         btmghana.net
         """
 
-        # Store verification data in Redis if client is provided
-        # if redis_client:
-        #     await redis_client.set(
-        #         session_id,
-        #         verification_data,
-        #         expire=expiration_minutes * 60
-        #     )
-
-        # Send the verification email
         try:
             print("Sending...")
             await self.send_email(
                 to_email=email,
                 subject="BTM Ghana - Email Verification",
-                content=email_content
+                content=email_content,
             )
             print("Sent")
             return verification_data
@@ -144,21 +132,22 @@ class EmailService:
             print("An error has occured", e)
             raise GeneralError(detail="Failure in sending email.")
 
-    async def send_mail(self, email: EmailStr,
+    async def send_mail(
+        self,
+        email: EmailStr,
         subject: str,
-        content: str,):
+        content: str,
+    ):
         """Send an email"""
         try:
-            await self.send_email(
-                to_email=email,
-                subject=subject,
-                content=content
-            )
+            await self.send_email(to_email=email, subject=subject, content=content)
             return True
         except Exception as e:
             print("An error has occured", e)
             raise GeneralError(detail="Failure in sending email.")
 
+
 class EmailServiceException(Exception):
     """Custom exception for email service related errors."""
+
     pass
