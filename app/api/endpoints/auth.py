@@ -156,7 +156,6 @@ async def google_login_callback(
 
     user = dict(jsonable_encoder(data.get("user")))
 
-
     send_email.delay(
         user.get("email"),
         "Welcome to BTM Ghana – We're Glad You're Here! 🎉",
