@@ -259,9 +259,7 @@ class AuthService(BaseService):
         delattr(new_user, "password")
         return UserSchema(**new_user.model_dump(exclude_none=True))
 
-    async def google_sign_up(
-        self, user_info: GoogleSignIn, background_tasks: BackgroundTasks
-    ):
+    async def google_sign_up(self, user_info: GoogleSignIn):
         """Google Signup"""
 
         user_exists: User = await self.user_repository.get_by_email(user_info.email)
@@ -291,30 +289,6 @@ class AuthService(BaseService):
                     payload.model_dump(), token_lifespan
                 )
 
-                email_content = """
-                Welcome to BTM Ghana! We're excited to have you on board. Since you signed up using Google, you’re all set—no extra steps needed!
-
-                Here’s what you can do next:
-                    ✅ Get started with creating your customized tour package or booking a flight.
-
-                If you ever have any questions, feel free to reach out to our support team at {0}.
-
-                We’re thrilled to have you with us! 🚀
-
-                Cheers,
-                BTM Ghana
-                https://btmghana.net
-            """.format(
-                    "info@btmghana.net"
-                )
-
-                background_tasks.add_task(
-                    self.email_service.send_mail,
-                    new_user.email,
-                    subject="Welcome to BTM Ghana – We're Glad You're Here! 🎉",
-                    content=email_content,
-                )
-
                 google_signup_result = {
                     "access_token": access_token,
                     "expiration": expiration_datetime,
@@ -332,8 +306,6 @@ class AuthService(BaseService):
         self,
         code: str,
         state: str,
-        background_tasks: BackgroundTasks,
-        flow: Union[Flow, None],
     ):
         """"""
         if not code:
@@ -350,12 +322,10 @@ class AuthService(BaseService):
         ):
             return AuthError(detail="Authentication failed. Please try again")
 
-        # flow = google_auth.google_auth_flow(code)
+        flow = google_register_auth.google_auth_flow(code)
 
         if flow is None:
-            print("here", code)
-            # return AuthError(detail="Authorization failed. Please try again!")
-            flow = google_register_auth.google_auth_flow(code)
+            return AuthError(detail="Authorization failed. Please try again!")
 
         credentials = flow.credentials
 
@@ -374,9 +344,8 @@ class AuthService(BaseService):
                 return AuthError(detail="Account exists! Please login.")
 
             await self.google_repository.delete_by_state(state)
-            return await self.google_sign_up(
-                GoogleSignIn(**user_info), background_tasks
-            )
+
+            return await self.google_sign_up(GoogleSignIn(**user_info))
         except Exception as e:
             return GeneralError(detail=str(e))
 

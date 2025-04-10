@@ -130,7 +130,6 @@ async def google_login(
 @router.post("/google/login/callback", summary="Google Login Authentication")
 @inject
 async def google_login_callback(
-    background_tasks: BackgroundTasks,
     google_data: GoogleCallbackData,
     service: AuthService = Depends(Provide[Container.auth_service]),
 ):
@@ -186,9 +185,34 @@ async def google_register_callback(
     service: AuthService = Depends(Provide[Container.auth_service]),
 ):
     """Google Login callback"""
-    return await service.google_sign_up_temp(
-        google_data.code, google_data.state, background_tasks
+    data = await service.google_sign_up_temp(google_data.code, google_data.state)
+
+    email_content = """
+                Welcome to BTM Ghana! We're excited to have you on board. Since you signed up using Google, you’re all set—no extra steps needed!
+
+                Here’s what you can do next:
+                    ✅ Get started with creating your customized tour package or booking a flight.
+
+                If you ever have any questions, feel free to reach out to our support team at {0}.
+
+                We’re thrilled to have you with us! 🚀
+
+                Cheers,
+                BTM Ghana
+                https://btmghana.net
+            """.format(
+        "info@btmghana.net"
     )
+
+    user = dict(jsonable_encoder(data.get("user")))
+
+    send_email.delay(
+        user.get("email"),
+        "Welcome to BTM Ghana – We're Glad You're Here! 🎉",
+        email_content,
+    )
+
+    return jsonable_encoder(data)
 
 
 @router.post("/verify", summary="Verify user registration")
