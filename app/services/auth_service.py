@@ -34,7 +34,6 @@ from app.services.cache.redis_service import RedisService
 from app.services.mail_service import EmailService
 from app.util.google import google_login_auth, google_register_auth
 from datetime import datetime
-from google_auth_oauthlib.flow import Flow
 
 
 class AuthService(BaseService):
@@ -193,13 +192,11 @@ class AuthService(BaseService):
 
         return await self.user_repository.get_by_email(email)
 
-    async def sign_up(
-        self, user_info: CreateUser, background_tasks: BackgroundTasks
-    ) -> UserSchema:
+    async def sign_up(self, user_info: CreateUser):
         if len(user_info.password) < 6:
             raise ValidationError("Password is too short!")
 
-        user = User(
+        user: User = User(
             **user_info.model_dump(exclude_none=True),
             is_active=True,
             is_admin=False,
@@ -227,37 +224,29 @@ class AuthService(BaseService):
             session_id = uuid4()
 
             user_verification = UserVerification(
-                session_id=session_id, email=user.email, token=access_token
+                session_id=session_id, email=new_user.email, token=access_token
             )
 
             await self.user_verification_repository.create(user_verification)
 
-            verification_url = getenv("API_URI", "https://btmghana.net") + "/verify"
+            # verification_url = getenv("API_URI", "https://btmghana.net") + "/verify"
 
-            # await email_service.send_verification_email(session_id, new_user.email, verification_url)
-            # lambda: asyncio.run(self.email_service.send_verification_email(session_id, new_user.email, verification_url))
-            # email_service = EmailService(configs.SMTP_SERVER, configs.EMAIL_PORT,
-            #                          configs.EMAIL_USERNAME, configs.EMAIL_PASSWORD, configs.SENDER_EMAIL)
-
-            # email_task = partial(
-            #     email_service.send_verification_email, session_id, new_user.email, verification_url)
-            # email_task = partial(email_service.send_verification_email,
-            #                      session_id, new_user.email, verification_url)
-
-            # await self.email_service.send_verification_email(session_id, new_user.email, verification_url)
-
-            background_tasks.add_task(
-                self.email_service.send_verification_email,
-                session_id,
-                new_user.email,
-                verification_url,
-            )
+            # background_tasks.add_task(
+            #     self.email_service.send_verification_email,
+            #     session_id,
+            #     new_user.email,
+            #     verification_url,
+            # )
         except Exception as e:
             print("error", e)
             raise GeneralError(detail=str(e))
 
         delattr(new_user, "password")
-        return UserSchema(**new_user.model_dump(exclude_none=True))
+
+        return {
+            "user": UserSchema(**new_user.model_dump(exclude_none=True)),
+            "session_id": session_id,
+        }
 
     async def google_sign_up(self, user_info: GoogleSignIn):
         """Google Signup"""
@@ -395,14 +384,15 @@ class AuthService(BaseService):
                 )
 
             try:
-
                 google_user_info = GoogleSignIn(**user_info)
+
                 user = User(
                     **google_user_info.model_dump(exclude_none=True),
                     is_active=True,
                     is_admin=False,
                     provider="google",
                 )
+
                 new_user = await self.user_repository.create(user)
 
                 payload = Payload(
@@ -439,6 +429,31 @@ class AuthService(BaseService):
 
                 await self.redis_service.cache_data(f"user:{new_user.id}", user_data)
 
+                email_content = """
+                Welcome to BTM Ghana! We're excited to have you on board. Since you signed up using Google, you’re all set—no extra steps needed!
+
+                Here’s what you can do next:
+                    ✅ Get started with creating your customized tour package or booking a flight.
+
+                If you ever have any questions, feel free to reach out to our support team at {0}.
+
+                We’re thrilled to have you with us! 🚀
+
+                Cheers,
+                BTM Ghana
+                https://btmghana.net
+            """.format(
+                    "info@btmghana.net"
+                )
+
+                from app.tasks import send_email
+
+                send_email.delay(
+                    new_user.email,
+                    "Welcome to BTM Ghana – We're Glad You're Here! 🎉",
+                    email_content,
+                )
+
                 google_signup_result = {
                     "csrf_token": csrf_token,
                     "access_token": access_token,
@@ -450,9 +465,6 @@ class AuthService(BaseService):
             except Exception as e:
                 print("error", e)
                 raise GeneralError(detail="An unknown error has occured") from str(e)
-
-            await self.google_repository.delete_by_state(state)
-            return AuthError(detail="Account does not exist! Please sign up")
         except Exception as e:
             return GeneralError(detail=str(e))
 
