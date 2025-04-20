@@ -77,6 +77,7 @@ class EmailService:
     async def send_verification_email(
         self,
         session_id: str,
+        name: str,
         email: EmailStr,
         verification_url: str,
         expiration_minutes: int = 15,
@@ -87,7 +88,7 @@ class EmailService:
             email: User's email address
             verification_url: Base URL for verification
             expiration_minutes: Token expiration time in minutes
-            redis_client: Optional Redis client for token storage
+            content_type: Email content type
 
         Returns:
             Dict containing verification data
@@ -100,24 +101,101 @@ class EmailService:
         }
 
         verification_link = f"{verification_url}?token={session_id}"
+        from app.util.email import verification_style_2
 
-        email_content = f"""Hi,
-
-        Thanks for signing up on BTM Ghana!
-
-        To complete your registration, please click on the link below\n
-        to verify your email address:
-
-        {verification_link}
-
-        This link will expire in {expiration_minutes} minutes.
-
-        If you didn't request this email, please ignore it.
-
-        Best regards,
-        BTM Ghana
-        btmghana.net
-        """
+        email_content = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify your email</title>
+    <style>
+ body {{
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f5ff;
+      color: #333;
+    }}
+    .container {{
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }}
+    .logo-container {{
+      text-align: center;
+      margin-bottom: 24px;
+      position: relative;
+      max-width: 100px;
+      margin: 0 auto;
+    }}
+    .logo {{
+      background-color: #ffffff;
+      border-radius: 6px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: center;
+    }}
+    .header {{
+      text-align: center;
+      margin-bottom: 32px;
+    }}
+    h1 {{
+      color: #2e1065;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }}
+    .button-container {{
+      text-align: center;
+      margin: 24px 0;
+    }}
+    .button {{
+      background-color: #2563eb;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 500;
+      display: inline-block;
+    }}
+    .footer {{
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      margin-top: 32px;
+    }}
+    
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo-container">
+      <div class="logo">
+                <img src="https://res.cloudinary.com/djjoidnbp/image/upload/v1745099902/btm-logo_rmp4vj.png" alt="BTM Ghana" style="max-width: 100px;">
+      </div>
+    </div>
+    
+    <div class="header">
+      <h1>Please verify your email 😊</h1>
+      <p>We are happy you signed up for <strong>BTM Ghana</strong>! To complete your registration, please click on the link below to verify your email address. This helps keep your account secure.</p>
+    </div>
+    
+    <div class="button-container">
+      <a style="color: white;" href="{verification_link}" class="button">Verify my account</a>
+    </div>
+    
+    <div class="footer">
+      <p>
+        You're receiving this email because you have an account on BTM Ghana. 
+        If you are not sure why you're receiving this, please contact us by replying to this email.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+"""
 
         try:
             print("Sending...")
@@ -125,6 +203,7 @@ class EmailService:
                 to_email=email,
                 subject="BTM Ghana - Email Verification",
                 content=email_content,
+                content_type="html",
             )
             print("Sent")
             return verification_data
@@ -137,10 +216,16 @@ class EmailService:
         email: EmailStr,
         subject: str,
         content: str,
+        content_type: str = "plain",
     ):
         """Send an email"""
         try:
-            await self.send_email(to_email=email, subject=subject, content=content)
+            await self.send_email(
+                to_email=email,
+                subject=subject,
+                content=content,
+                content_type=content_type,
+            )
             return True
         except Exception as e:
             print("An error has occured", e)

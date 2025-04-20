@@ -13,13 +13,13 @@ from app.core.container import Container
 
 
 @celery_app.task
-def send_email(email: str, subject: str, content: str):
+def send_email(email: str, subject: str, content: str, content_type: str = "plain"):
     """Celery task to send email"""
 
     async def start_email_service():
         email_service: EmailService = Container.email_service()
 
-        await email_service.send_mail(email, subject, content)
+        await email_service.send_mail(email, subject, content, content_type)
 
     asyncio.run(start_email_service())
 
@@ -27,13 +27,18 @@ def send_email(email: str, subject: str, content: str):
 
 
 @celery_app.task
-def send_verification_email(email: str, session_id: UUID, verification_url: str):
+def send_verification_email(
+    name: str,
+    email: str,
+    session_id: UUID,
+    verification_url: str,
+):
     """Celery task to send verification email"""
 
     async def start_email_service():
         email_service: EmailService = Container.email_service()
 
-        await email_service.send_verification_email(session_id, email, verification_url)
+        await email_service.send_verification_email(session_id, name, email, verification_url)
 
     asyncio.run(start_email_service())
 
