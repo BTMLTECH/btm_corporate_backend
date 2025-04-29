@@ -35,7 +35,7 @@ def upgrade() -> None:
     sa.Column('user_email', sa.String(), nullable=False),
     sa.Column('user_contact', sa.String(), nullable=True),
     sa.Column('user_address', sa.String(), nullable=False),
-    sa.Column('payment_status', sa.Enum(TourPackagePaymentStatusType, name="tour_package_payment_status_type_enum"), nullable=True),
+    # sa.Column('payment_status', sa.Enum(TourPackagePaymentStatusType, name="tour_package_payment_status_type_enum"), nullable=True),
     sa.Column('tx_ref', sa.String(length=255), nullable=True),
     sa.Column('payment_gateway', sa.String(length=255), nullable=True),
     sa.Column('currency', sa.String(length=255), nullable=True),
