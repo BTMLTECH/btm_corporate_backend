@@ -10,17 +10,13 @@ from app.model import *
 from alembic import context
 
 
-database_url: str = "{db_engine}://{user}:{password}@{host}:{port}/{database}".format(
+database_url: str = "{db_engine}://{user}:{password}@{host}/{database}?ssl=require".format(
     db_engine="postgresql+asyncpg",
-    user=getenv("DB_LOCAL_USER"),
-    password=getenv("DB_LOCAL_PASSWORD"),
-    host=getenv("DB_LOCAL_HOST", "localhost"),
+    user=getenv("DB_USER"),
+    password=getenv("DB_PASSWORD"),
+    host=getenv("DB_HOST", "localhost"),
     port=5432,
-<<<<<<< HEAD
     database=getenv("DB", "btm_corporate_db"),
-=======
-    database=getenv("DB_LOCAL", "btm_corporate_db"),
->>>>>>> packages
 )
 
 # this is the Alembic Config object, which provides
