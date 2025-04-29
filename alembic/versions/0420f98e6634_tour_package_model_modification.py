@@ -44,14 +44,14 @@ def upgrade() -> None:
     sa.Column('no_of_people_attending', sa.Integer(), nullable=False),
     sa.Column('start_date', sa.Date(), server_default=sa.text('CURRENT_DATE'), nullable=True),
     sa.Column('end_date', sa.Date(), server_default=sa.text("CURRENT_DATE + INTERVAL '3 days'"), nullable=True),
-    sa.ForeignKeyConstraint(['accommodation_id'], ['accommodations.id'], ),
-    sa.ForeignKeyConstraint(['region_id'], ['regions.id'], ondelete='CASCADE'),
+    # sa.ForeignKeyConstraint(['accommodation_id'], ['accommodations.id'], ),
+    # sa.ForeignKeyConstraint(['region_id'], ['regions.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_foreign_key(None, 'tour_package_accommodations', 'user_tour_packages', ['tour_package_id'], ['id'], ondelete='CASCADE')
-    op.create_foreign_key(None, 'tour_package_activities', 'user_tour_packages', ['tour_package_id'], ['id'], ondelete='CASCADE')
-    op.create_foreign_key(None, 'tour_package_tour_sites_region', 'user_tour_packages', ['tour_package_id'], ['id'], ondelete='CASCADE')
-    op.create_foreign_key(None, 'tour_package_transportations', 'user_tour_packages', ['tour_package_id'], ['id'], ondelete='CASCADE')
+    # op.create_foreign_key(None, 'tour_package_accommodations', 'user_tour_packages', ['tour_package_id'], ['id'], ondelete='CASCADE')
+    # op.create_foreign_key(None, 'tour_package_activities', 'user_tour_packages', ['tour_package_id'], ['id'], ondelete='CASCADE')
+    # op.create_foreign_key(None, 'tour_package_tour_sites_region', 'user_tour_packages', ['tour_package_id'], ['id'], ondelete='CASCADE')
+    # op.create_foreign_key(None, 'tour_package_transportations', 'user_tour_packages', ['tour_package_id'], ['id'], ondelete='CASCADE')
     # ### end Alembic commands ###
 
 

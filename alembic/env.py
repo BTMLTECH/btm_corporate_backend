@@ -16,10 +16,8 @@ database_url: str = "{db_engine}://{user}:{password}@{host}/{database}?ssl=requi
     password=getenv("DB_PASSWORD"),
     host=getenv("DB_HOST", "localhost"),
     port=5432,
-    database=getenv("DB", "btm_corporate_db_f537_ptv0"),
+    database=getenv("DB", "btm_corporate_db"),
 )
-
-db_url: str = getenv("DATABASE_URL")
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
