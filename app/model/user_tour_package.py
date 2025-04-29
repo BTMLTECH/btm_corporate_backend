@@ -4,7 +4,7 @@
 """Tour Package Model"""
 
 import enum
-from typing import List, Union
+from typing import List, Optional, Union
 from uuid import UUID
 from sqlalchemy import (
     Boolean,
@@ -66,21 +66,21 @@ class UserTourPackage(BaseModel, table=True):
     # payment_id: Union[UUID, None] = Field(sa_column=Column(
     #     "payment_id", ForeignKey(column="personal_package_payment.id"), default=None, nullable=True))
 
-    payment: UserPayment = Relationship(
+    payment: Optional[UserPayment] = Relationship(
         back_populates="user_tour_package", link_model=UserTourPackagePaymentLink
     )
 
-    payment_status: Union[TourPackagePaymentStatusType, None] = Field(
-        sa_column=Column(
-            "payment_status",
-            Enum(
-                TourPackagePaymentStatusType,
-                name="tour_package_payment_status_type_enum",
-            ),
-            default=TourPackagePaymentStatusType.PENDING,
-            nullable=True,
-        )
-    )
+    # payment_status: Union[TourPackagePaymentStatusType, None] = Field(
+    #     sa_column=Column(
+    #         "payment_status",
+    #         Enum(
+    #             TourPackagePaymentStatusType,
+    #             name="tour_package_payment_status_type_enum",
+    #         ),
+    #         default=TourPackagePaymentStatusType.PENDING,
+    #         nullable=True,
+    #     )
+    # )
 
     tx_ref: str = Field(
         sa_column=Column("tx_ref", String(255), default=None, nullable=True)
