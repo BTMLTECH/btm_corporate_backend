@@ -15,6 +15,8 @@ class CreateItinerarySchema(BaseModel):
     day_number: int
     title: Union[str, None] = None
     description: str = Field(..., min_length=1)
+
+    tour_package_id: Optional[UUID] = None
     
 
 

@@ -7,7 +7,7 @@ from typing import List, TypeVar
 from uuid import UUID
 
 from asyncpg import NotNullViolationError
-from sqlalchemy import select
+from sqlalchemy import desc, select
 from app.adapter.sqlalchemy_adapter import SQLAlchemyAdapter
 from app.model.destination import Destination
 from app.model.exclusion import Exclusion
@@ -158,7 +158,7 @@ class TourPackageRepository(BaseRepository):
                                 selectinload(self.model.exclusions),
                                 selectinload(self.model.terms_conditions),
                             )
-                            .order_by(self.model.created_at.desc())
+                            .order_by(desc(self.model.created_at))
                         )
                     )
                     .scalars()
