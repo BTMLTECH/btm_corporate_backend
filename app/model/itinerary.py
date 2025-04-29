@@ -23,7 +23,7 @@ class Itinerary(BaseModel, table=True):
     )
 
     title: Optional[str] = Field(
-        sa_column=Column(String(50), nullable=True, default=None)
+        sa_column=Column(String(255), nullable=True, default=None)
     )
 
     day_number: int = Field(sa_column=Column(Integer, nullable=False))
