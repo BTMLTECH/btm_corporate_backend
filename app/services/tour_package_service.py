@@ -9,10 +9,12 @@ from uuid import UUID
 
 from app.core.exceptions import GeneralError
 from app.model.inclusion import Inclusion
+from app.model.itinerary import Itinerary
 from app.model.tour_package import TourPackage
 from app.repository.tour_package_repository import TourPackageRepository
 from app.schema.exclusion_schema import CreateExclusionSchema
 from app.schema.inclusion_schema import CreateInclusionSchema
+from app.schema.itinerary_schema import CreateItinerarySchema
 from app.schema.tour_package_schema import CreateTourPackageSchema
 from app.services.base_service import BaseService
 
@@ -41,6 +43,12 @@ class TourPackageService(BaseService):
             return await self.tour_package_repository.get_by_id(tour_package_id)
         except (Exception, ValueError) as e:
             raise GeneralError(detail="Invalid ID")
+        
+    async def create_tour_package_itinerary(
+        self, schema: CreateItinerarySchema
+    ) -> Itinerary:
+        """Creates a tour package itinerary"""
+        return await self.tour_package_repository.create_itinerary(schema)
 
     async def create_tour_package_inclusion(
         self, schema: CreateInclusionSchema

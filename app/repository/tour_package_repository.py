@@ -182,13 +182,42 @@ class TourPackageRepository(BaseRepository):
 
     async def create_itinerary(
         self,
-        tour_package_schema: CreateTourPackageSchema,
-        itinerary_list_schema: List[CreateItinerarySchema],
+        schema: CreateItinerarySchema,
     ):
-        """"""
-        print("creating itinerary...")
-        print(tour_package_schema, itinerary_list_schema)
-        return None
+        """Creates an Itinerary record in the database"""
+        query = Itinerary(**schema.model_dump())
+        async with self.db_adapter.session() as session, session.begin():
+            try:
+                await self.db_adapter.add(session, query)
+                await self.db_adapter.flush(session)
+                await self.db_adapter.refresh(session, query)
+
+                query_result = (
+                    select(Itinerary)
+                    .options(
+                        selectinload(Itinerary.tour_package),
+                    )
+                    .where(Itinerary.id == query.id)
+                )
+
+                query = (await session.execute(query_result)).scalar_one()
+            except IntegrityError as e:
+                await self.db_adapter.rollback(session)
+                raise DuplicatedError(detail=str(e.orig))
+            except Exception as e:
+                if "duplicate" in str(e).lower():
+                    error_msg = "This Itinerary '{}' exists!".format(query.title)
+                    raise DuplicatedError(detail=error_msg)
+                elif "null value" in str(e).lower():
+                    error_msg = "One or more fields required!"
+                    raise GeneralError(detail=error_msg)
+                else:
+                    print(f"Other integrity error: {str(e)}")
+                    raise DuplicatedError(detail=str(e))
+            else:
+                await self.db_adapter.commit(session)
+
+        return query
 
     async def get_or_create_destination(self, name: str) -> Destination:
         from app.model.destination import Destination
@@ -253,7 +282,7 @@ class TourPackageRepository(BaseRepository):
                 raise DuplicatedError(detail=str(e.orig))
             except Exception as e:
                 if "duplicate" in str(e).lower():
-                    error_msg = "This tour package '{}' exists!".format(query.title)
+                    error_msg = "This inclusion exists!"
                     raise DuplicatedError(detail=error_msg)
                 elif "null value" in str(e).lower():
                     error_msg = "One or more fields required!"
@@ -289,7 +318,7 @@ class TourPackageRepository(BaseRepository):
                 raise DuplicatedError(detail=str(e.orig))
             except Exception as e:
                 if "duplicate" in str(e).lower():
-                    error_msg = "This tour package '{}' exists!".format(query.title)
+                    error_msg = "This exclusion exists!"
                     raise DuplicatedError(detail=error_msg)
                 elif "null value" in str(e).lower():
                     error_msg = "One or more fields required!"

@@ -11,6 +11,7 @@ from app.core.dependencies import get_current_user, is_user_admin
 from app.model.user import User
 from app.schema.exclusion_schema import CreateExclusionSchema, ExclusionSchema
 from app.schema.inclusion_schema import CreateInclusionSchema, InclusionSchema
+from app.schema.itinerary_schema import CreateItinerarySchema, ItinerarySchema
 from app.schema.payment_schema import PaymentRequest
 from app.schema.tour_package_schema import (
     CreateTourPackage,
@@ -96,6 +97,20 @@ async def get_tour_package_by_id(
 
     return result
 
+@router.post(
+    "/itinerary/create",
+    response_model=ItinerarySchema,
+    description="Create a tour package itinerary",
+)
+@inject
+async def create_tour_package_itinerary(
+    itinerary: CreateItinerarySchema,
+    service: TourPackageService = Depends(Provide[Container.tour_package_service]),
+):
+    """Route to create a tour package itinerary"""
+    result = await service.create_tour_package_itinerary(itinerary)
+
+    return result
 
 @router.post(
     "/inclusion/create",
