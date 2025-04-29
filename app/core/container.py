@@ -14,10 +14,12 @@ from app.repository import payment_repository
 from app.repository.accommodation_repository import AccommodationRepository
 from app.repository.activity_repository import ActivityRepository
 from app.repository.auth_repository import AuthRepository
+from app.repository.destination_repository import DestinationRepository
 from app.repository.google_repository import GoogleRepository
 from app.repository.payment_repository import PaymentRepository
 from app.repository.region_repository import RegionRepository
 from app.repository.tour_package_repository import TourPackageRepository
+from app.repository.user_tour_package_repository import UserTourPackageRepository
 from app.repository.tour_sites_region_repository import TourSitesRegionRepository
 from app.repository.transportation_repository import TransportationRepository
 from app.repository.user_repository import UserRepository
@@ -27,11 +29,12 @@ from app.services.activity_service import ActivityService
 from app.services.auth_service import AuthService
 from app.services.base_payment_service import PaymentService
 from app.services.cache.redis_service import RedisService
+from app.services.destination_service import DestinationService
 from app.services.payment.flutter_pay import FlutterPaymentGateway
 from app.services.payment_service import PaymentGatewayService
 from app.services.region_service import RegionService
-from app.services.tour_package_payment_service import TourPackagePaymentService
 from app.services.tour_package_service import TourPackageService
+from app.services.user_tour_package_service import UserTourPackageService
 from app.services.tour_sites_service import TourSitesRegionService
 from app.services.transportation_service import TransportationService
 from app.services.user_service import UserService
@@ -51,6 +54,7 @@ class Container(containers.DeclarativeContainer):
             "app.api.endpoints.transportation",
             "app.api.endpoints.tour_package",
             "app.api.endpoints.payment",
+            "app.api.endpoints.destination",
             "app.core.dependencies",
         ]
     )
@@ -99,6 +103,8 @@ class Container(containers.DeclarativeContainer):
 
     accommodation_repository = providers.Factory(
         AccommodationRepository, db_adapter=database_adapter)
+    
+    destination_repository = providers.Factory(DestinationRepository, db_adapter=database_adapter)
 
     transportation_repository = providers.Factory(
         TransportationRepository, db_adapter=database_adapter)
@@ -108,6 +114,9 @@ class Container(containers.DeclarativeContainer):
 
     tour_package_repository = providers.Factory(
         TourPackageRepository, db_adapter=database_adapter)
+    
+    user_tour_package_repository = providers.Factory(
+        UserTourPackageRepository, db_adapter=database_adapter)
 
     payment_repository = providers.Factory(PaymentRepository, database_adapter)
 
@@ -135,6 +144,8 @@ class Container(containers.DeclarativeContainer):
         email_service=email_service
     )
 
+    destination_service = providers.Factory(DestinationService, destination_repository=destination_repository)
+
     payment_gateway_service = providers.Factory(
         PaymentGatewayService, payment_repository, flutter_payment_gateway)
 
@@ -146,13 +157,13 @@ class Container(containers.DeclarativeContainer):
 
     tour_sites_region_service = providers.Factory(
         TourSitesRegionService, tour_sites_region_repository)
+    
+    tour_package_service = providers.Factory(TourPackageService, tour_package_repository)
 
-    tour_package_service = providers.Factory(
-        TourPackageService, tour_package_repository)
+    user_tour_package_service = providers.Factory(
+        UserTourPackageService, user_tour_package_repository)
 
-    tour_package_payment_service = providers.Factory(
-        TourPackagePaymentService, tour_package_service=tour_package_service, payment_service=payment_gateway_service
-    )
+   
 
     transportation_service = providers.Factory(
         TransportationService, transportation_repository)

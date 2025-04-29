@@ -6,7 +6,6 @@ from typing import List
 from sqlalchemy import Column, Float, ForeignKey, String, UniqueConstraint
 from app.model.base_model import BaseModel
 from sqlmodel import Field, Relationship
-from app.model.tour_package_activity import TourPackageActivityLink
 from uuid import UUID
 
 from app.model.tour_sites_region import TourSitesRegion
@@ -31,8 +30,8 @@ class Activity(BaseModel, table=True):
     tour_sites_region: List[TourSitesRegion] = Relationship(
         back_populates="activities")
 
-    tour_packages: List["TourPackage"] = Relationship(
-        back_populates="activities", link_model=TourPackageActivityLink)
+    # tour_packages: List["TourPackage"] = Relationship(
+    #     back_populates="activities", link_model=TourPackageActivityLink)
 
     __table_args__ = (UniqueConstraint(
         "name", "tour_sites_region_id", name="uq_name_region"),)

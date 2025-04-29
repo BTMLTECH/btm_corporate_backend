@@ -8,11 +8,11 @@ from app.model.base_model import BaseModel
 from sqlmodel import Field
 
 
-class TourPackageActivityLink(BaseModel, table=True):
-    __tablename__: str = "tour_package_activities"
+class UserTourPackageActivityLink(BaseModel, table=True):
+    __tablename__: str = "user_tour_package_activities"
 
-    tour_package_id: UUID = Field(
-        sa_column=Column("tour_package_id", ForeignKey(
+    user_tour_package_id: UUID = Field(
+        sa_column=Column("user_tour_package_id", ForeignKey(
             column="user_tour_packages.id", ondelete="CASCADE")),
     )
     activity_id: UUID = Field(

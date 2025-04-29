@@ -7,7 +7,7 @@ Create Date: 2025-01-15 12:11:55.117959
 """
 from typing import Sequence, Union
 from app.model.personal_package_payment import PackagePaymentStatusTypeEnum
-from app.model.tour_package import TourPackagePaymentStatusTypeEnum
+from app.model.user_tour_package import TourPackagePaymentStatusTypeEnum
 from alembic import op
 import sqlalchemy as sa
 

@@ -4,24 +4,17 @@
 """Payment package Services"""
 
 
-from uuid import UUID
 
 from aiohttp import ClientConnectorDNSError
 from app.core.exceptions import (
-    AuthForbiddenError,
-    DuplicatedError,
     GeneralError,
-    NotFoundError,
     ServerError,
 )
 from app.model.user import User
 from app.repository.payment_repository import PaymentRepository
 from app.schema.payment_schema import FlutterPaymentRequest, PackagePaymentSchema
-from app.services.base_payment_service import BasePaymentGateway, PaymentService
+from app.services.base_payment_service import BasePaymentGateway
 from app.services.base_service import BaseService
-from app.services.payment.flutter_pay import FlutterPaymentGateway
-from app.services.tour_package_service import TourPackageService
-from app.services.user_service import UserService
 
 
 class PaymentGatewayService(BaseService):

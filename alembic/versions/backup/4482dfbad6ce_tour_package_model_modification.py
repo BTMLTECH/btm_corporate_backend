@@ -10,7 +10,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 from app.model.personal_package_payment import PackagePaymentStatusTypeEnum
-from app.model.tour_package import TourPackagePaymentStatusTypeEnum
+from app.model.user_tour_package import TourPackagePaymentStatusTypeEnum
 
 # revision identifiers, used by Alembic.
 revision: str = '4482dfbad6ce'

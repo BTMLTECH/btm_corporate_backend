@@ -70,15 +70,17 @@ class AppCreator:
             raise "Missing Secret Key"
 
         self.app.add_middleware(
-            SessionMiddleware, secret_key=configs.SECRET_KEY, max_age=1800,  # 30 minutes
-            same_site="lax")
+            SessionMiddleware,
+            secret_key=configs.SECRET_KEY,
+            max_age=1800,  # 30 minutes
+            same_site="lax",
+        )
 
         # set cors
         if configs.BACKEND_CORS_ORIGINS:
             self.app.add_middleware(
                 CORSMiddleware,
-                allow_origins=[str(origin)
-                               for origin in configs.BACKEND_CORS_ORIGINS],
+                allow_origins=[str(origin) for origin in configs.BACKEND_CORS_ORIGINS],
                 allow_credentials=True,
                 allow_methods=["*"],
                 allow_headers=["*"],
@@ -92,14 +94,13 @@ class AppCreator:
         @self.app.middleware("http")
         async def db_session_middleware(request: Request, call_next):
             """Middleware to manage database sessions."""
-            request.state.db = AsyncSession(
-                autocommit=False, autoflush=False)
-            
-            pool = redis.ConnectionPool().from_url(
-                "redis://localhost" if configs.ENV == "dev" else configs.REDIS_URL)
+            request.state.db = AsyncSession(autocommit=False, autoflush=False)
 
-            redis_conn = redis.Redis.from_pool(
-                connection_pool=pool)
+            pool = redis.ConnectionPool().from_url(
+                "redis://localhost" if configs.ENV == "dev" else configs.REDIS_URL
+            )
+
+            redis_conn = redis.Redis.from_pool(connection_pool=pool)
 
             request.state.redis = redis_conn
             try:
@@ -184,17 +185,30 @@ app = app_creator.app
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(_, exc):
     errors = {}
+    required_fields = {}
     for error in exc.errors():
-        field = ''.join(error['loc'][1]) if len(
-            error['loc']) > 1 else error['loc'][0]
-        errors['{}'.format(field)] = error['msg']
+        field = "".join(error["loc"][1]) if len(error["loc"]) > 1 else error["loc"][0]
+        errors["{}".format(field)] = error["msg"]
+
+        # if len(error["loc"]) > 3:
+        #     required_fields["{}".format(error["loc"][-1])] = "This field is required in {}!".format(
+        #         field
+        #     )
+
         # errors['message'] = error['msg']
         # errors.append({
         #     'field': field,
         #     'message': error['msg']
         # })
-    return JSONResponse(status_code=422, content={
-        "detail": "Validation error", "errors": errors})
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": "Validation error",
+            "errors": errors,
+            **required_fields,
+        },
+    )
+
 
 db = app_creator.db
 redis_client = app_creator.redis_client

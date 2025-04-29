@@ -1,105 +1,51 @@
 #!/usr/bin/env python3
-# File: region.py
+# File: package.py
 # Author: Oluwatobiloba Light
 """Tour Package Model"""
 
-import enum
-from typing import List, Union
-from uuid import UUID
-from sqlalchemy import Boolean, Column, Date, Enum, ForeignKey, ForeignKeyConstraint, Integer, String, func, text
+from typing import Optional, List
+from sqlalchemy import Column, Numeric, String, Text, Integer, Float, DECIMAL
 from sqlmodel import Field, Relationship
-from app.model.accommodation import Accommodation
 from app.model.base_model import BaseModel
-# from app.model.personal_package_payment import PersonalPackagePayment
-from app.model.region import Region
-from app.model.tour_package_accommodation import TourPackageAccommodationLink
-from app.model.tour_package_activity import TourPackageActivityLink
-from app.model.tour_package_tour_sites_region import TourPackageTourSitesRegionLink
-from app.model.tour_package_transportation import TourPackageTransportationLink
-from app.model.user import User
-from datetime import date
-from sqlalchemy.sql import func
-
-
-class TourPackagePaymentStatusType(str, enum.Enum):
-    """Tour Package payment Type"""
-    PENDING = "PENDING"
-    SUCCESS = "SUCCESS"
-    FAILED = "FAILED"
-
-
-TourPackagePaymentStatusTypeEnum: Enum = Enum(
-    TourPackagePaymentStatusType,
-    name="tour_package_payment_status_type_enum",
-    create_constraint=True,
-    metadata=BaseModel.metadata,
-    validate_strings=True,
-)
+from app.model.destination_tour_package import DestinationTourPackageLink
 
 
 class TourPackage(BaseModel, table=True):
-    __tablename__: str = "user_tour_packages"
+    __tablename__: str = "tour_packages"
 
-    active: bool = Field(sa_column=Column("active", Boolean, default=False))
+    title: str = Field(sa_column=Column(String(255), nullable=False))
+    slug: str = Field(sa_column=Column(String(255), nullable=False, unique=True))
+    description: Optional[str] = Field(sa_column=Column(Text, default=None))
+    
+    duration_days: int = Field(sa_column=Column(Integer, nullable=False))
+    duration_nights: int = Field(sa_column=Column(Integer, nullable=False))
+    
+    price_per_person_usd: float = Field(sa_column=Column(Numeric(10, 2), nullable=False))
+    destinations: List[str] = Field(sa_column=Column(Text), default=[])
+    
+    accommodation_details: Optional[str] = Field(sa_column=Column(Text, default=None))
+    meals_included: Optional[str] = Field(sa_column=Column(Text, default=None))
+    
+    transport_info: Optional[str] = Field(sa_column=Column(Text, default=None))
 
-    user_id: UUID = Field(sa_column=Column(
-        "user_id", ForeignKey(column="users.id", ondelete="CASCADE")))
 
-    user: User = Relationship(back_populates="tour_packages")
+    package_type: str = Field(sa_column=Column(String(50), nullable=False))
 
-    # payment_id: Union[UUID, None] = Field(sa_column=Column(
-    #     "payment_id", ForeignKey(column="personal_package_payment.id"), default=None, nullable=True))
+    thumbnail_url: str = Field(sa_column=Column(String(255), nullable=False))
 
-    payment: "PersonalPackagePayment" = Relationship(
-        back_populates="tour_package")
+    images_url: Optional[List[str]] = Field(sa_column=Column(Text, default=None))
 
-    payment_status: Union[TourPackagePaymentStatusType, None] = Field(sa_column=Column("payment_status", Enum(
-        TourPackagePaymentStatusType, name="tour_package_payment_status_type_enum"), default=TourPackagePaymentStatusType.PENDING, nullable=True))
+    # relationships here
+    destinations: List["Destination"] = Relationship(back_populates="tour_packages", link_model=DestinationTourPackageLink)
+    itineraries: Optional[List["Itinerary"]] = Relationship(back_populates="tour_package")
 
-    tx_ref: str = Field(sa_column=Column(
-        "tx_ref", String(255), default=None, nullable=True))
+    inclusions: Optional[List["Inclusion"]] = Relationship(back_populates="tour_package")
+    exclusions: Optional[List["Exclusion"]] = Relationship(back_populates="tour_package")
 
-    payment_gateway: str = Field(sa_column=Column(
-        "payment_gateway", String(255), default=None, nullable=True))
+    terms_conditions: Optional[List["TermsCondition"]] = Relationship(back_populates="tour_package")
+    # contact_phone: Optional[str] = Field(sa_column=Column(String(50), default=None))
+    # contact_email: Optional[str] = Field(sa_column=Column(String(100), default=None))
 
-    currency: str = Field(sa_column=Column(
-        "currency", String(255), default=None, nullable=True))
-
-    region_id: UUID = Field(sa_column=Column(
-        "region_id", ForeignKey(column="regions.id", ondelete="CASCADE")))
-
-    region: Region = Relationship(back_populates="tour_packages")
-
-    tour_sites_region: List["TourSitesRegion"] = Relationship(
-        back_populates="tour_packages", link_model=TourPackageTourSitesRegionLink)
-
-    accommodation_id: UUID = Field(sa_column=Column(
-        "accommodation_id", ForeignKey(column="accommodations.id")))
-
-    accommodation: Accommodation = Relationship(
-        back_populates="tour_packages", link_model=TourPackageAccommodationLink)
-
-    no_of_people_attending: int = Field(sa_column=Column(
-        "no_of_people_attending", Integer, default=1, nullable=False))
-
-    start_date: date = Field(sa_column=Column(
-        "start_date", Date, server_default=func.current_date()))
-
-    end_date: date = Field(sa_column=Column(
-        "end_date", Date, server_default=text("CURRENT_DATE + INTERVAL '3 days'")))
-
-    activities: List["Activity"] = Relationship(
-        back_populates="tour_packages", link_model=TourPackageActivityLink)
-
-    transportation: List["Transportation"] = Relationship(
-        back_populates="tour_packages", link_model=TourPackageTransportationLink)
-
-#     __table_args__ = (
-#     ForeignKeyConstraint(
-#         ['payment_id'],
-#         ['personal_package_payment.id'],
-#         name='fk_tour_package_payment',
-#         deferrable=True,
-#         initially='deferred'
-#     ),
-# )
+    # ForeignKey relationship (Many packages can belong to one region)
+    # region_id: Optional[str] = Field(foreign_key="regions.id, default=None")
+    # region: Optional["Region"] = Relationship(back_populates="tour_packages")

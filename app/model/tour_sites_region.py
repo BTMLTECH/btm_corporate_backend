@@ -8,7 +8,6 @@ from sqlalchemy import Column, Float, ForeignKey, String
 from app.model.base_model import BaseModel
 from sqlmodel import Field, Relationship
 from app.model.region import Region
-from app.model.tour_package_tour_sites_region import TourPackageTourSitesRegionLink
 
 
 class TourSitesRegion(BaseModel, table=True):
@@ -31,5 +30,5 @@ class TourSitesRegion(BaseModel, table=True):
 
     activities: List["Activity"] = Relationship(back_populates="tour_sites_region")
 
-    tour_packages: List["TourPackage"] = Relationship(back_populates="tour_sites_region", link_model=TourPackageTourSitesRegionLink)
+    # user_tour_packages: List["UserTourPackage"] = Relationship(back_populates="tour_sites_region", link_model=TourPackageTourSitesRegionLink)
 
