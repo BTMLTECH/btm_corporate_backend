@@ -10,7 +10,7 @@ from app.adapter.sqlalchemy_adapter import SQLAlchemyAdapter
 from app.model.accommodation import Accommodation
 from app.model.activity import Activity
 from app.model.region import Region
-from app.model.user_tour_package import UserTourPackage, TourPackagePaymentStatusType
+from app.model.user_tour_package import UserTourPackage
 from app.model.tour_sites_region import TourSitesRegion
 from app.model.transportation import Transportation
 from app.model.user import User
@@ -156,7 +156,6 @@ class UserTourPackageRepository(BaseRepository):
                     "user_id": user.id,
                     "start_date": schema.start_date,
                     "end_date": schema.end_date,
-                    "payment_status": TourPackagePaymentStatusType.PENDING,
                 }
 
                 query = self.model(**schema_dict)

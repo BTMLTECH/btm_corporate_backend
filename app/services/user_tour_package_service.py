@@ -110,7 +110,6 @@ Here are the key details of your package:
     Activities: {activity_list}
     Transportation: {transportation_list}
     People attending: {new_tour_package.no_of_people_attending}
-    Payment Status: {new_tour_package.payment_status}
         
 At BTM Ghana, we are committed to making your travel experience seamless and memorable. If you have any questions or need further adjustments, please don’t hesitate to reach out to us at info@btmghana.net or call us at +2330302743234.\n
 We look forward to helping you embark on an incredible journey!\n

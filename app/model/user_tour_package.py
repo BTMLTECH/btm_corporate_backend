@@ -35,21 +35,21 @@ from app.model.user_payment import UserPayment
 from app.model.user_tour_package_payment import UserTourPackagePaymentLink
 
 
-class TourPackagePaymentStatusType(str, enum.Enum):
-    """Tour Package payment Type"""
+# class TourPackagePaymentStatusType(str, enum.Enum):
+#     """Tour Package payment Type"""
 
-    PENDING = "PENDING"
-    SUCCESS = "SUCCESS"
-    FAILED = "FAILED"
+#     PENDING = "PENDING"
+#     SUCCESS = "SUCCESS"
+#     FAILED = "FAILED"
 
 
-TourPackagePaymentStatusTypeEnum: Enum = Enum(
-    TourPackagePaymentStatusType,
-    name="tour_package_payment_status_type_enum",
-    create_constraint=True,
-    metadata=BaseModel.metadata,
-    validate_strings=True,
-)
+# TourPackagePaymentStatusTypeEnum: Enum = Enum(
+#     TourPackagePaymentStatusType,
+#     name="tour_package_payment_status_type_enum",
+#     create_constraint=True,
+#     metadata=BaseModel.metadata,
+#     validate_strings=True,
+# )
 
 
 class UserTourPackage(BaseModel, table=True):
