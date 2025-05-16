@@ -33,7 +33,7 @@ router = APIRouter(
 
 
 @router.post(
-    "/add", response_model=None, description="Create a new customized user Tour Package"
+    "/user/create", response_model=None, description="Create a new customized user Tour Package"
 )
 @inject
 async def add_user_tour_package(

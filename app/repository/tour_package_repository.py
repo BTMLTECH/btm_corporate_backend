@@ -13,7 +13,7 @@ from app.model.destination import Destination
 from app.model.exclusion import Exclusion
 from app.model.inclusion import Inclusion
 from app.model.itinerary import Itinerary
-from app.model.terms_condition import TermsCondition
+from app.model.terms_condition import TermsConditions
 from app.model.tour_package import TourPackage
 from app.repository.base_repository import BaseRepository
 from app.schema.exclusion_schema import CreateExclusionSchema
@@ -54,7 +54,7 @@ class TourPackageRepository(BaseRepository):
 
         terms_conditions = (
             [
-                TermsCondition(**term_condition.model_dump())
+                TermsConditions(**term_condition.model_dump())
                 for term_condition in schema.terms_conditions
             ]
             if schema.terms_conditions and len(schema.terms_conditions) >= 1
@@ -166,7 +166,6 @@ class TourPackageRepository(BaseRepository):
                 )
 
                 # sorted_tour_packages = sorted(query, key=lambda i: i.created_at, reverse=True)
-
                 return query
             except Exception as e:
                 raise GeneralError(detail=str(e))

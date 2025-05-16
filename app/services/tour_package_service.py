@@ -27,11 +27,18 @@ class TourPackageService(BaseService):
 
     async def create_tour_package(self, schema: CreateTourPackageSchema):
         """Creates a new tour package"""
-        return await self.tour_package_repository.create(schema)
+        try:
+            return await self.tour_package_repository.create(schema)
+        except Exception as e:
+            print("Error", e)
+            raise GeneralError(detail=f"An error has occured while creating a tour package: {e}")
 
     async def get_tour_packages(self) -> Sequence[TourPackage]:
         """Gets a list of tour packages"""
-        return await self.tour_package_repository.get_all()
+        try:
+            return await self.tour_package_repository.get_all()
+        except Exception as e:
+            raise GeneralError(detail="An error has occured fetching all tour packages")
 
     async def get_tour_package_by_id(
         self, tour_package_id: Union[str, UUID]

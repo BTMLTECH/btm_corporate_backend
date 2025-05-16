@@ -11,7 +11,7 @@ from app.model.tour_package import TourPackage
 
 
 # Terms &Condition schema here
-class CreateTermsConditionSchema(BaseModel):
+class CreateTermsConditionsSchema(BaseModel):
     title: Union[str, None] = None
     description: str = Field(..., min_length=1)
     
