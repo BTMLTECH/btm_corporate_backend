@@ -185,10 +185,10 @@ CREATE TABLE public.regions (
 ALTER TABLE public.regions OWNER TO postgres;
 
 --
--- Name: termsconditions; Type: TABLE; Schema: public; Owner: postgres
+-- Name: terms_conditions; Type: TABLE; Schema: public; Owner: postgres
 --
 
-CREATE TABLE public.termsconditions (
+CREATE TABLE public.terms_conditions (
     id uuid NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
@@ -199,7 +199,7 @@ CREATE TABLE public.termsconditions (
 );
 
 
-ALTER TABLE public.termsconditions OWNER TO postgres;
+ALTER TABLE public.terms_conditions OWNER TO postgres;
 
 --
 -- Name: tour_package_transportations; Type: TABLE; Schema: public; Owner: postgres
@@ -845,10 +845,10 @@ d64a7549-8ce9-4296-b4c6-0b2d37d6de77	2025-02-19 09:21:09.954953	2025-02-19 09:21
 
 
 --
--- Data for Name: termsconditions; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: terms_conditions; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.termsconditions (id, created_at, updated_at, deleted_at, title, description, tour_package_id) FROM stdin;
+COPY public.terms_conditions (id, created_at, updated_at, deleted_at, title, description, tour_package_id) FROM stdin;
 b047a47e-7a4a-4320-89aa-b09195b60267	2025-06-12 17:01:38.456902	2025-06-12 17:01:38.456914	\N	Booking & Payment	A 50% deposit is required to confirm booking. Full payment must be made at least 14 days before departure.	17535cca-e75e-425f-b285-ffd233d68757
 83fa8f17-090a-487b-8493-2d6ae0d6338a	2025-06-12 17:01:38.456921	2025-06-12 17:01:38.456923	\N	Visa Requirements	All travelers must possess a valid Kenya ETA prior to departure. Assistance with application will be provided.	17535cca-e75e-425f-b285-ffd233d68757
 72dfc258-7e21-4def-a6ba-7ee1211544b7	2025-06-12 17:01:38.456929	2025-06-12 17:01:38.45693	\N	Cancellation Policy	Cancellations made less than 14 days before travel may incur penalties. Refunds are subject to supplier terms.	17535cca-e75e-425f-b285-ffd233d68757
@@ -1171,11 +1171,11 @@ ALTER TABLE ONLY public.regions
 
 
 --
--- Name: termsconditions termsconditions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: terms_conditions terms_conditions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.termsconditions
-    ADD CONSTRAINT termsconditions_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.terms_conditions
+    ADD CONSTRAINT terms_conditions_pkey PRIMARY KEY (id);
 
 
 --
@@ -1402,11 +1402,11 @@ ALTER TABLE ONLY public.regions
 
 
 --
--- Name: termsconditions termsconditions_tour_package_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: terms_conditions terms_conditions_tour_package_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.termsconditions
-    ADD CONSTRAINT termsconditions_tour_package_id_fkey FOREIGN KEY (tour_package_id) REFERENCES public.tour_packages(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.terms_conditions
+    ADD CONSTRAINT terms_conditions_tour_package_id_fkey FOREIGN KEY (tour_package_id) REFERENCES public.tour_packages(id) ON DELETE CASCADE;
 
 
 --

@@ -79,7 +79,7 @@ class TourPackage(BaseModel, table=True):
         sa_column=Column(
             Enum(TourPackagePriceType, name="tour_package_price_type_enum"),
             default=None,
-            nullable=True
+            nullable=True,
         )
     )
 
@@ -91,23 +91,25 @@ class TourPackage(BaseModel, table=True):
 
     # relationships here
     destinations: List["Destination"] = Relationship(
-        back_populates="tour_packages", link_model=DestinationTourPackageLink, cascade_delete=True
+        back_populates="tour_packages",
+        link_model=DestinationTourPackageLink,
+        sa_relationship_kwargs={"cascade": "all, delete"},
     )
 
     itineraries: Optional[List["Itinerary"]] = Relationship(
-        back_populates="tour_package", cascade_delete=True
+        back_populates="tour_package", sa_relationship_kwargs={"cascade": "all, delete"}
     )
 
     inclusions: Optional[List["Inclusion"]] = Relationship(
-        back_populates="tour_package", cascade_delete=True
+        back_populates="tour_package", sa_relationship_kwargs={"cascade": "all, delete"}
     )
 
     exclusions: Optional[List["Exclusion"]] = Relationship(
-        back_populates="tour_package", cascade_delete=True
+        back_populates="tour_package", sa_relationship_kwargs={"cascade": "all, delete"}
     )
 
     terms_conditions: Optional[List["TermsConditions"]] = Relationship(
-        back_populates="tour_package", cascade_delete=True
+        back_populates="tour_package", sa_relationship_kwargs={"cascade": "all, delete"}
     )
     # contact_phone: Optional[str] = Field(sa_column=Column(String(50), default=None))
     # contact_email: Optional[str] = Field(sa_column=Column(String(100), default=None))

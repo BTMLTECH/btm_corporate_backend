@@ -323,6 +323,7 @@ def downgrade() -> None:
     op.drop_table('destination_regions')
     op.drop_table('user_payment')
     op.drop_table('terms_conditions')
+    op.drop_table('termsconditions')
     op.drop_table('regions')
     op.drop_table('itineraries')
     op.drop_table('inclusion')
