@@ -16,7 +16,7 @@ class TermsConditions(BaseModel, table=True):
     ___tablename__: str = "terms_conditions"
 
     title: Optional[str] = Field(
-        sa_column=Column("title",String(50), nullable=True, default=None)
+        sa_column=Column("title",String(50), nullable=False, default=None)
     )
 
     description: str = Field(

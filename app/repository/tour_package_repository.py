@@ -19,6 +19,7 @@ from app.repository.base_repository import BaseRepository
 from app.schema.exclusion_schema import CreateExclusionSchema
 from app.schema.inclusion_schema import CreateInclusionSchema
 from app.schema.itinerary_schema import CreateItinerarySchema
+from app.schema.terms_condition_schema import CreateTermsConditionsSchema
 from app.schema.tour_package_schema import CreateTourPackageSchema
 from sqlalchemy.orm import selectinload
 from psycopg2 import IntegrityError
@@ -156,7 +157,7 @@ class TourPackageRepository(BaseRepository):
                                 selectinload(self.model.itineraries),
                                 selectinload(self.model.inclusions),
                                 selectinload(self.model.exclusions),
-                                # selectinload(self.model.terms_conditions),
+                                selectinload(self.model.terms_conditions),
                             )
                             .order_by(desc(self.model.created_at))
                         )
@@ -318,6 +319,42 @@ class TourPackageRepository(BaseRepository):
             except Exception as e:
                 if "duplicate" in str(e).lower():
                     error_msg = "This exclusion exists!"
+                    raise DuplicatedError(detail=error_msg)
+                elif "null value" in str(e).lower():
+                    error_msg = "One or more fields required!"
+                    raise GeneralError(detail=error_msg)
+                else:
+                    print(f"Other integrity error: {str(e)}")
+                    raise DuplicatedError(detail=str(e))
+            else:
+                await self.db_adapter.commit(session)
+
+        return query
+
+    async def create_terms_conditions(self, schema: CreateTermsConditionsSchema):
+        """Creates a tour package terms and codnitions"""
+        query = Exclusion(**schema.model_dump())
+        async with self.db_adapter.session() as session, session.begin():
+            try:
+                await self.db_adapter.add(session, query)
+                await self.db_adapter.flush(session)
+                await self.db_adapter.refresh(session, query)
+
+                query_result = (
+                    select(TermsConditions)
+                    .options(
+                        selectinload(TermsConditions.tour_package),
+                    )
+                    .where(TermsConditions.id == query.id)
+                )
+
+                query = (await session.execute(query_result)).scalar_one()
+            except IntegrityError as e:
+                await self.db_adapter.rollback(session)
+                raise DuplicatedError(detail=str(e.orig))
+            except Exception as e:
+                if "duplicate" in str(e).lower():
+                    error_msg = "This terms and conditions exists!"
                     raise DuplicatedError(detail=error_msg)
                 elif "null value" in str(e).lower():
                     error_msg = "One or more fields required!"

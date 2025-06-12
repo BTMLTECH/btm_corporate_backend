@@ -17,7 +17,7 @@ class CreateTermsConditionsSchema(BaseModel):
     
 
 
-class TermsConditionSchema(BaseModel):
+class ReadTermsConditionSchema(BaseModel):
     id: UUID
 
     title: Optional[str]

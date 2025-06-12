@@ -13,6 +13,7 @@ from app.schema.exclusion_schema import CreateExclusionSchema, ExclusionSchema
 from app.schema.inclusion_schema import CreateInclusionSchema, InclusionSchema
 from app.schema.itinerary_schema import CreateItinerarySchema, ItinerarySchema
 from app.schema.payment_schema import PaymentRequest
+from app.schema.terms_condition_schema import CreateTermsConditionsSchema, ReadTermsConditionSchema
 from app.schema.tour_package_schema import (
     CreateTourPackage,
     CreateTourPackageAndMakePayment,
@@ -140,5 +141,21 @@ async def create_tour_package_exclusion(
 ):
     """Route to create a tour package exclusion"""
     result = await service.create_tour_package_exclusion(exclusion)
+
+    return result
+
+
+@router.post(
+    "/terms-conditions/create",
+    response_model=ReadTermsConditionSchema,
+    description="Create a tour package terms and conditions",
+)
+@inject
+async def create_tour_package_terms_conditions(
+    terms_conditions: CreateTermsConditionsSchema,
+    service: TourPackageService = Depends(Provide[Container.tour_package_service]),
+):
+    """Route to create a tour package terms and conditions"""
+    result = await service.create_tour_package_terms_conditions(terms_conditions)
 
     return result
