@@ -5,6 +5,7 @@
 
 from typing import Optional, List
 from sqlalchemy import (
+    JSON,
     Boolean,
     Column,
     Numeric,
@@ -87,7 +88,7 @@ class TourPackage(BaseModel, table=True):
 
     thumbnail_url: str = Field(sa_column=Column(String(255), nullable=False))
 
-    images_url: Optional[List[str]] = Field(sa_column=Column(Text, default=None))
+    images_url: Optional[List[str]] = Field(sa_column=Column(JSON, default=None))
 
     # relationships here
     destinations: List["Destination"] = Relationship(

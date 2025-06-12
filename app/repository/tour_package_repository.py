@@ -62,6 +62,8 @@ class TourPackageRepository(BaseRepository):
             else []
         )
 
+        print("images url", schema.images_url)
+
         query = self.model(
             destinations=(
                 await self.resolve_destinations(
@@ -158,6 +160,7 @@ class TourPackageRepository(BaseRepository):
                                 selectinload(self.model.inclusions),
                                 selectinload(self.model.exclusions),
                                 selectinload(self.model.terms_conditions),
+                                # selectinload(self.model.)
                             )
                             .order_by(desc(self.model.created_at))
                         )
