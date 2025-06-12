@@ -12,8 +12,13 @@ from alembic import context
 
 database_url: str = "{db_engine}://{user}:{password}@{host}/{database}?ssl=require".format(
     db_engine="postgresql+asyncpg",
+<<<<<<< HEAD
     user=getenv("DB_USER"),
     password=getenv("DB_PASSWORD"),
+=======
+    user=getenv("DB_USER", "postgres"),
+    password=getenv("DB_PASSWORD", "postgres"),
+>>>>>>> packages
     host=getenv("DB_HOST", "localhost"),
     port=5432,
     database=getenv("DB", "btm_corporate_db"),

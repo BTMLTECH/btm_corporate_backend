@@ -7,6 +7,7 @@
 import os
 from typing import List, Union
 from dotenv import load_dotenv
+from pydantic import Extra
 from pydantic_settings import BaseSettings
 
 load_dotenv()
@@ -132,6 +133,8 @@ class Configs(BaseSettings):
 
     class Config:
         case_sensitive = True
+        env_file = ".env"
+        extra = 'allow'
 
 
 class TestConfigs(Configs):

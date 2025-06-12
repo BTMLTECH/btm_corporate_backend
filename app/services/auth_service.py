@@ -1095,13 +1095,6 @@ class AuthService(BaseService):
 
             access_token, _ = create_access_token(payload.model_dump(), token_lifespan)
 
-            email_service = EmailService(
-                configs.SMTP_SERVER,
-                configs.EMAIL_PORT,
-                configs.EMAIL_USERNAME,
-                configs.EMAIL_PASSWORD,
-                configs.SENDER_EMAIL,
-            )
 
             session_id = uuid4()
 

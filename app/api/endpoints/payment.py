@@ -21,7 +21,7 @@ router = APIRouter(
 )
 
 
-@router.post("/process", response_model=None)
+@router.post("/initiate", response_model=None)
 @inject
 async def initiate_payment(
     payment_request: FlutterPaymentRequest,

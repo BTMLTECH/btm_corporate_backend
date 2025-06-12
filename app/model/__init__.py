@@ -19,4 +19,4 @@ from app.model.itinerary import Itinerary
 from app.model.destination_tour_package import DestinationTourPackageLink
 from app.model.inclusion import Inclusion
 from app.model.exclusion import Exclusion
-from app.model.terms_condition import TermsCondition
+from app.model.terms_condition import TermsConditions

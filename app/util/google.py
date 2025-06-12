@@ -74,9 +74,10 @@ class GoogleAuth:
                 google.auth.exceptions.InvalidOperation) as e:
             return None
 
+import codecs
 
 google_login_auth = GoogleAuth(client_secrets_file=configs.GOOGLE_CLIENT,
-                         redirect_uri=configs.GOOGLE_LOGIN_REDIRECT_URI if configs.ENV == "production" else configs.GOOGLE_LOCAL_LOGIN_REDIRECT_URI, scopes=configs.GOOGLE_SCOPES)
+                         redirect_uri=configs.GOOGLE_LOGIN_REDIRECT_URI if configs.ENV == "production" else codecs.decode(configs.GOOGLE_LOCAL_LOGIN_REDIRECT_URI, "unicode_escape"), scopes=configs.GOOGLE_SCOPES)
 
 google_register_auth = GoogleAuth(client_secrets_file=configs.GOOGLE_CLIENT,
-                                          redirect_uri=configs.GOOGLE_REGISTER_REDIRECT_URI if configs.ENV == "production" else configs.GOOGLE_LOCAL_REGISTER_REDIRECT_URI, scopes=configs.GOOGLE_SCOPES)
+                                          redirect_uri=configs.GOOGLE_REGISTER_REDIRECT_URI if configs.ENV == "production" else codecs.decode(configs.GOOGLE_LOCAL_REGISTER_REDIRECT_URI, "unicode_escape"), scopes=configs.GOOGLE_SCOPES)
