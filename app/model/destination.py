@@ -22,7 +22,8 @@ class Destination(BaseModel, table=True):
     )
 
     tour_packages: Optional[List["TourPackage"]] = Relationship(
-        back_populates="destinations", link_model=DestinationTourPackageLink
+        back_populates="destinations", link_model=DestinationTourPackageLink,
+        sa_relationship_kwargs={"cascade": "all, delete"}
     )
 
     regions: Optional[List["Region"]] = Relationship(back_populates="destination", link_model=DestinationRegionLink)

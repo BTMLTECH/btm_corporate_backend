@@ -67,7 +67,7 @@ class Container(containers.DeclarativeContainer):
         db_url=(
             configs.DATABASE_URI
             if configs.ENV == "production"
-            else configs.DATABASE_URI
+            else configs.DATABASE_LOCAL_URI
         ),
     )
 
