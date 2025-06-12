@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: ec85a5d704a3
+Revision ID: 63ae87913a11
 Revises: 
-Create Date: 2025-06-12 17:35:41.069088
+Create Date: 2025-06-12 18:38:37.522836
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'ec85a5d704a3'
+revision: str = '63ae87913a11'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -322,7 +322,7 @@ def downgrade() -> None:
     op.drop_table('tour_sites_region')
     op.drop_table('destination_regions')
     op.drop_table('user_payment')
-    op.drop_table('termsconditions')
+    op.drop_table('terms_conditions')
     op.drop_table('regions')
     op.drop_table('itineraries')
     op.drop_table('inclusion')

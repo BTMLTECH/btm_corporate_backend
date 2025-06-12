@@ -91,23 +91,23 @@ class TourPackage(BaseModel, table=True):
 
     # relationships here
     destinations: List["Destination"] = Relationship(
-        back_populates="tour_packages", link_model=DestinationTourPackageLink
+        back_populates="tour_packages", link_model=DestinationTourPackageLink, cascade_delete=True
     )
 
     itineraries: Optional[List["Itinerary"]] = Relationship(
-        back_populates="tour_package"
+        back_populates="tour_package", cascade_delete=True
     )
 
     inclusions: Optional[List["Inclusion"]] = Relationship(
-        back_populates="tour_package"
+        back_populates="tour_package", cascade_delete=True
     )
 
     exclusions: Optional[List["Exclusion"]] = Relationship(
-        back_populates="tour_package"
+        back_populates="tour_package", cascade_delete=True
     )
 
     terms_conditions: Optional[List["TermsConditions"]] = Relationship(
-        back_populates="tour_package"
+        back_populates="tour_package", cascade_delete=True
     )
     # contact_phone: Optional[str] = Field(sa_column=Column(String(50), default=None))
     # contact_email: Optional[str] = Field(sa_column=Column(String(100), default=None))
