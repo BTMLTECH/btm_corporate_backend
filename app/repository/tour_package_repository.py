@@ -156,7 +156,7 @@ class TourPackageRepository(BaseRepository):
                                 selectinload(self.model.itineraries),
                                 selectinload(self.model.inclusions),
                                 selectinload(self.model.exclusions),
-                                selectinload(self.model.terms_conditions),
+                                # selectinload(self.model.terms_conditions),
                             )
                             .order_by(desc(self.model.created_at))
                         )
